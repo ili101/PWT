@@ -1,5 +1,5 @@
 # ExchangeMessageTrackingLogWeb (Beta)
-PowerShell website using Pode.Web for searching Exchange `Get-MessageTrackingLog`.
+PowerShell website using [Pode.Web](https://github.com/Badgerati/Pode.Web) for searching Exchange [Get-MessageTrackingLog](https://docs.microsoft.com/en-us/powershell/module/exchange/get-messagetrackinglog?view=exchange-ps).
 
 ## Install and config
 1. Git Clone or download zip with the GitHub "Code" button.
@@ -15,7 +15,7 @@ Install-Module -Name ImportExcel
 
 ## Need help?
 Open an [Issue](https://github.com/ili101/ExchangeMessageTrackingLogWeb/issues)
-or connect on [discussions](https://github.com/ili101/ExchangeMessageTrackingLogWeb/discussions)
+or message on [Discussions](https://github.com/ili101/ExchangeMessageTrackingLogWeb/discussions).
 
 ## Contributing
 If you fund a bug, added functionality or anything else just fork and send pull requests. Thank you!
@@ -26,3 +26,4 @@ If you fund a bug, added functionality or anything else just fork and send pull 
 ## To do
 * Excel download button.
 * Add time to date filters.
+* Exchange local config.

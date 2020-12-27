@@ -10,4 +10,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Main Pode.Web page.
 - Config file example.
-- Module to contact exchange.
+- Module to contact Exchange.
