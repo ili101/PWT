@@ -10,7 +10,7 @@ Install-Module -Name Pode
 Install-Module -Name Pode.Web
 Install-Module -Name ImportExcel
 ```
-4. Edit `Config.ps1` as needed (Default is exchange demo mode and self signed website).
+4. Edit `Config.ps1` as needed (Default is exchange demo mode and unsecured website).
 5. Run `Home.ps1` and browse to server URL.
 
 ## Need help?
@@ -27,3 +27,4 @@ If you fund a bug, added functionality or anything else just fork and send pull 
 * Excel download button.
 * Add time to date filters.
 * Exchange local config.
+* Reconnect on exchange remote.

@@ -70,5 +70,5 @@ Start-PodeServer {
         New-PodeWebTextbox -Name 'Recipients' -Type Email
         New-PodeWebTextbox -Name 'MessageSubject'
     )
-    Add-PodeWebPage -Name Processes -Icon Activity -Components $Form, $DownloadSection, $ResultsTable
+    Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Components $Form, $DownloadSection, $ResultsTable
 }

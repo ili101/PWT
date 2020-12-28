@@ -9,17 +9,17 @@
     # URL, Certificate, Theme & Title.
     Endpoint     = {
         # Http
-        #Add-PodeEndpoint -Address localhost -Protocol Http
+        Add-PodeEndpoint -Address localhost -Protocol Http
 
         # Https Self Signed
-        Add-PodeEndpoint -Address localhost -Port 443 -Protocol Https -SelfSigned
+        #Add-PodeEndpoint -Address localhost -Port 443 -Protocol Https -SelfSigned
 
         # Https Certificate
         #$Certificate = Get-PfxCertificate -FilePath 'MyCert.pfx' -Password 'PfxPass'
         #Add-PodeEndpoint -Address 109.226.1.69 -Port 443 -Protocol Https -X509Certificate $Certificate
 
         # Theme & Title
-        Use-PodeWebTemplates -Title Test -Theme Dark
+        Use-PodeWebTemplates -Title Tools -Theme Dark
     }
 
     <# Login (Optional uncomment).
