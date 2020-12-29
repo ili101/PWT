@@ -12,7 +12,7 @@ Start-PodeServer {
 
     $ResultsTable = New-PodeWebTable -Name 'Results' -Id 'TableResults' -Filter
     $DownloadSection = New-PodeWebSection -Name 'Download Section' -Elements @(
-        New-PodeWebButton -Name 'Download' -Id 'DownloadResults' -ScriptBlock {
+        New-PodeWebButton -Name 'Download' -Id 'DownloadResults' -Icon 'Download' -ScriptBlock {
             Lock-PodeObject -Object $WebEvent.Lockable {
                 $Results = Get-PodeState -Name 'Results'
             }
