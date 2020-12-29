@@ -34,10 +34,17 @@ function Connect-Exchange {
         )
     }
     else {
-        $Script:Dummy = $null
-        $Script:ExchangePSSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $ConnectionUri -Credential $Credential
-        $Script:ExchangePSModuleInfo = Import-PSSession -Session $Script:ExchangePSSession
-        $Script:TransportServices = Get-TransportService
+        if ($Script:ExchangePSSession.State -eq 'Broken') {
+            Remove-PSSession -Session $Script:ExchangePSSession
+            $Script:ExchangePSSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $ConnectionUri -Credential $Credential
+            & $Script:ExchangePSModuleInfo Set-PSImplicitRemotingSession -PSSession $Script:ExchangePSSession -createdByModule $True
+        }
+        else {
+            $Script:Dummy = $null
+            $Script:ExchangePSSession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri $ConnectionUri -Credential $Credential
+            $Script:ExchangePSModuleInfo = Import-PSSession -Session $Script:ExchangePSSession
+            $Script:TransportServices = Get-TransportService
+        }
     }
 }
 function Disconnect-Exchange {
