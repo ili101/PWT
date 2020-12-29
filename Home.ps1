@@ -45,7 +45,7 @@ Start-PodeServer {
                     $InputData[$Param.Key] = $Param.Value
                 }
             }
-            Import-Module -Name .\EXLogLib.psm1
+            Import-Module -Name (Join-Path $PSScriptRoot 'EXLogLib.psm1')
             Connect-Exchange @Exchange
             $Results = Search-MessageTracking @InputData
             Show-PodeWebToast -Message "Found $($Results.Length) results"
@@ -60,7 +60,13 @@ Start-PodeServer {
         }
         catch {
             if ($Debug) {
-                $_ | Get-Error | Out-PodeWebTextbox -Multiline -Preformat
+                $ErrorMsg = if ($PSVersionTable.PSVersion.Major -gt 5) {
+                    $_ | Get-Error
+                }
+                else {
+                    $_
+                }
+                $ErrorMsg | Out-PodeWebTextbox -Multiline -Preformat
             }
         }
     } -Elements @(

@@ -26,4 +26,3 @@ If you fund a bug, added functionality or anything else just fork and send pull 
 ## To do
 * Excel download button.
 * Add time to date filters.
-* Exchange local config.

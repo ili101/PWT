@@ -8,12 +8,15 @@ function Connect-Exchange {
         [Parameter(Mandatory, ParameterSetName = 'Remote')]
         [String]$ConnectionUri,
         [Parameter(Mandatory, ParameterSetName = 'Remote')]
-        [PSCredential]$Credential
+        [PSCredential]$Credential,
+        [Parameter(Mandatory, ParameterSetName = 'Tools')]
+        [Switch]$Tools
     )
-    if ($Script:ExchangePSSession.State -eq 'Opened' -or $Script:Dummy) {
+    if ($Script:ExchangePSSession.State -eq 'Opened' -or $Script:Dummy -or $Script:Tools) {
         Return
     }
     if ($Dummy) {
+        Write-Warning 'Dummy Exchange connect.'
         $Script:Dummy = @(
             [PSCustomObject]@{
                 Timestamp      = Get-Date
@@ -33,6 +36,11 @@ function Connect-Exchange {
             }
         )
     }
+    elseif ($Tools) {
+        Add-PSSnapin Microsoft.Exchange.Management.PowerShell.SnapIn
+        $Script:TransportServices = Get-TransportService
+        $Script:Tools = $true
+    }
     else {
         if ($Script:ExchangePSSession.State -eq 'Broken') {
             Remove-PSSession -Session $Script:ExchangePSSession
@@ -50,7 +58,7 @@ function Connect-Exchange {
 function Disconnect-Exchange {
     [CmdletBinding()]
     param ()
-    if (!$Dummy) {
+    if (!$Script:Dummy -and !$Script:Tools) {
         $Script:ExchangePSSession | Remove-PSSession
     }
 }
@@ -65,8 +73,8 @@ function Search-MessageTracking {
         [String]$MessageSubject
 
     )
-    if ($Dummy) {
-        $Dummy
+    if ($Script:Dummy) {
+        $Script:Dummy
     }
     else {
         $TransportServices | ForEach-Object {

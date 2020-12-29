@@ -32,12 +32,16 @@
 
     # Exchange Config.
     Exchange     = @{
-        # Fro demo test mode:
+        # For demo test mode:
         Dummy         = $true
 
         # For remote connection:
         #ConnectionUri = 'http://exchange.example.com/powershell'
         #Credential    = [System.Management.Automation.PSCredential]::new('ServiceUser', (ConvertTo-SecureString 'Do not save passwords in plain text' -AsPlainText -Force))
+
+        # For "Exchange Management Shell" mode:
+        # Requires "Exchange management tools" installed (PowerShell Core not supported).
+        #Tools         = $true
     }
 
     # General.

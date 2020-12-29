@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+<!-- ## [0.0.2] -->
 ### Fixed
 - Reconnect on "Broken" Exchange PSSession.
+- PowerShell 5.1 support.
+### Added
+- "Exchange Management Shell" mode support.
 
 ## [0.0.1] - 2020-12-28
 ### Added
