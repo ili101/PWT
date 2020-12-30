@@ -18,6 +18,7 @@ Start-PodeServer {
             }
             Export-Excel -InputObject $Results['Data'] -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path 'C:\Temp\test.xlsx'
         }
+        New-PodeWebLink -Source 'https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/message-tracking?view=exchserver-2019#event-types-in-the-message-tracking-log' -Value 'Event types in the message tracking log' -NewTab
     )
 
     $Form = New-PodeWebForm -Name 'Search' -ArgumentList ($Config['Dummy'], $Config['Debug'], $Config['Exchange']) -ScriptBlock {
