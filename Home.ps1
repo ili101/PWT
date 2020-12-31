@@ -13,6 +13,11 @@ Start-PodeServer {
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging -Levels @('Error', 'Warning', 'Informational', 'Verbose', 'Debug')
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
 
+    if(!(Test-Path -Path '.\Storage')) {
+        $null = New-Item -ItemType Directory '.\Storage'
+    }
+    Add-PodeStaticRoute -Path '/download' -Source '.\Storage' -DownloadOnly
+
     $DownloadSection = New-PodeWebCard -Name 'Download Section' -Content @(
         New-PodeWebForm -Name 'Search' -ArgumentList ($Config['Dummy'], $Config['Debug'], $Config['Exchange']) -ScriptBlock {
             param (
@@ -69,7 +74,9 @@ Start-PodeServer {
         )
         New-PodeWebButton -Name 'Download' -Id 'DownloadResults' -Icon 'Download' -ScriptBlock {
             Write-Warning 'Button run'
-            Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path 'C:\Temp\test.xlsx'
+            Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path '.\Storage\test.xlsx'
+            Set-PodeResponseAttachment -Path '/download/test.xlsx'
+            # Move-PodeResponseUrl -Url '/download/test.xlsx'
         }
         New-PodeWebLink -Source 'https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/message-tracking?view=exchserver-2019#event-types-in-the-message-tracking-log' -Value 'Event types in the message tracking log' -NewTab
         New-PodeWebTable -Name 'Results' -Id 'TableResults' -Filter
