@@ -48,9 +48,11 @@ Start-PodeServer {
                     }
                 }
                 foreach ($InputItem in 'Start', 'End') {
-                    if ($InputData[$InputItem + ' Time']) {
-                        $InputData[$InputItem] += ' ' + $InputData[$InputItem + ' Time']
-                        $InputData.Remove($InputItem + ' Time')
+                    foreach ($InputType in 'Date', 'Time') {
+                        if ($Value = $InputData[($Name = $InputItem + '_' + $InputType)]) {
+                            $InputData[$InputItem] = $InputData[$InputItem], $Value -ne $null -join ' '
+                            $InputData.Remove($Name)
+                        }
                     }
                 }
                 Import-Module -Name (Join-Path $PSScriptRoot 'EXLogLib.psm1')
@@ -75,10 +77,8 @@ Start-PodeServer {
                 }
             }
         } -Content @(
-            New-PodeWebTextbox -Name 'Start' -Type Date
-            New-PodeWebTextbox -Name 'Start Time' -Type Time
-            New-PodeWebTextbox -Name 'End' -Type Date
-            New-PodeWebTextbox -Name 'End Time' -Type Time
+            New-PodeWebDateTime -Name 'Start' -NoLabels
+            New-PodeWebDateTime -Name 'End' -NoLabels
             New-PodeWebTextbox -Name 'Sender' -Type Email
             New-PodeWebTextbox -Name 'Recipients' -Type Email
             New-PodeWebTextbox -Name 'MessageSubject'
