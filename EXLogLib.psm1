@@ -75,6 +75,7 @@ function Search-MessageTracking {
     )
     if ($Script:Dummy) {
         $Script:Dummy
+        Write-Warning ('Dummy filter for:' + ($PSBoundParameters | Out-String))
     }
     else {
         $TransportServices | ForEach-Object {
