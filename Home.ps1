@@ -9,14 +9,17 @@ Start-PodeServer {
     if ($Config['Login']) {
         . $Config['Login']
     }
-    
+
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging -Levels @('Error', 'Warning', 'Informational', 'Verbose', 'Debug')
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
-
-    if(!(Test-Path -Path '.\Storage')) {
-        $null = New-Item -ItemType Directory '.\Storage'
+    if ($Config['Debug']) {
+        Write-Debug "PID: $PID" -Debug
     }
-    Add-PodeStaticRoute -Path '/download' -Source '.\Storage' -DownloadOnly
+
+    if (!(Test-Path -Path $Config['DownloadPath'])) {
+        $null = New-Item -ItemType Directory $Config['DownloadPath']
+    }
+    Add-PodeStaticRoute -Path '/download' -Source $Config['DownloadPath'] -DownloadOnly
 
     $DownloadSection = New-PodeWebCard -Name 'Download Section' -Content @(
         New-PodeWebForm -Name 'Search' -ArgumentList ($Config['Dummy'], $Config['Debug'], $Config['Exchange']) -ScriptBlock {
@@ -72,11 +75,23 @@ Start-PodeServer {
             New-PodeWebTextbox -Name 'Recipients' -Type Email
             New-PodeWebTextbox -Name 'MessageSubject'
         )
-        New-PodeWebButton -Name 'Download' -Id 'DownloadResults' -Icon 'Download' -ScriptBlock {
+        New-PodeWebButton -Name 'Download' -Id 'DownloadResults' -Icon 'Download' -ArgumentList ($Config['DownloadPath']) -ScriptBlock {
+            param (
+                $DownloadPath
+            )
             Write-Warning 'Button run'
-            Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path '.\Storage\test.xlsx'
-            Set-PodeResponseAttachment -Path '/download/test.xlsx'
-            # Move-PodeResponseUrl -Url '/download/test.xlsx'
+            # $WebEvent.Session.Id
+            # $WebEvent.Auth.User.Username
+            # $WebEvent.Auth.User.Email
+            $PathRoot = if ([System.IO.Path]::IsPathRooted($DownloadPath)) {
+                $DownloadPath
+            }
+            else {
+                Join-Path (Get-PodeServerPath) $DownloadPath
+            }
+            $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd hh-mm-ss}.xlsx' -f (Get-Date))
+            Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $PathRoot $PathLeaf)
+            Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
         }
         New-PodeWebLink -Source 'https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/message-tracking?view=exchserver-2019#event-types-in-the-message-tracking-log' -Value 'Event types in the message tracking log' -NewTab
         New-PodeWebTable -Name 'Results' -Id 'TableResults' -Filter
