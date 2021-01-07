@@ -69,13 +69,15 @@ Start-PodeServer {
                 }
             }
         } -Content @(
-            New-PodeWebTextbox -Name 'Start' -Type Date
-            New-PodeWebTextbox -Name 'End' -Type Date
+            New-PodeWebTextbox -Name 'Start' -Type DateTime
+            New-PodeWebTextbox -Name 'End' -Type DateTime
             New-PodeWebTextbox -Name 'Sender' -Type Email
             New-PodeWebTextbox -Name 'Recipients' -Type Email
             New-PodeWebTextbox -Name 'MessageSubject'
         )
-        New-PodeWebButton -Name 'Download' -Id 'DownloadResults' -Icon 'Download' -ArgumentList ($Config['DownloadPath']) -ScriptBlock {
+        New-PodeWebLink -Source 'https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/message-tracking?view=exchserver-2019#event-types-in-the-message-tracking-log' -Value 'Event types in the message tracking log' -NewTab
+        $ResultsTable = New-PodeWebTable -Name 'Results' -Id 'TableResults' -Filter
+        $ResultsTable | Add-PodeWebTableButton -Name 'DownloadExcel' -Icon 'Bar-Chart' -ArgumentList ($Config['DownloadPath']) -ScriptBlock {
             param (
                 $DownloadPath
             )
@@ -93,8 +95,7 @@ Start-PodeServer {
             Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $PathRoot $PathLeaf)
             Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
         }
-        New-PodeWebLink -Source 'https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/message-tracking?view=exchserver-2019#event-types-in-the-message-tracking-log' -Value 'Event types in the message tracking log' -NewTab
-        New-PodeWebTable -Name 'Results' -Id 'TableResults' -Filter
+        $ResultsTable
     )
     Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts $DownloadSection
 }
