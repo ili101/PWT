@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - PowerShell 5.1 support.
 ### Added
 - "Exchange Management Shell" mode support.
+- Time filters.
 
 ## [0.0.1] - 2020-12-28
 ### Added

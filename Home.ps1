@@ -47,6 +47,12 @@ Start-PodeServer {
                         $InputData[$Param.Key] = $Param.Value
                     }
                 }
+                foreach ($InputItem in 'Start', 'End') {
+                    if ($InputData[$InputItem + ' Time']) {
+                        $InputData[$InputItem] += ' ' + $InputData[$InputItem + ' Time']
+                        $InputData.Remove($InputItem + ' Time')
+                    }
+                }
                 Import-Module -Name (Join-Path $PSScriptRoot 'EXLogLib.psm1')
                 Connect-Exchange @Exchange
                 $global:Results = Search-MessageTracking @InputData
@@ -69,8 +75,10 @@ Start-PodeServer {
                 }
             }
         } -Content @(
-            New-PodeWebTextbox -Name 'Start' -Type DateTime
-            New-PodeWebTextbox -Name 'End' -Type DateTime
+            New-PodeWebTextbox -Name 'Start' -Type Date
+            New-PodeWebTextbox -Name 'Start Time' -Type Time
+            New-PodeWebTextbox -Name 'End' -Type Date
+            New-PodeWebTextbox -Name 'End Time' -Type Time
             New-PodeWebTextbox -Name 'Sender' -Type Email
             New-PodeWebTextbox -Name 'Recipients' -Type Email
             New-PodeWebTextbox -Name 'MessageSubject'
@@ -81,7 +89,6 @@ Start-PodeServer {
             param (
                 $DownloadPath
             )
-            Write-Warning 'Button run'
             # $WebEvent.Session.Id
             # $WebEvent.Auth.User.Username
             # $WebEvent.Auth.User.Email
