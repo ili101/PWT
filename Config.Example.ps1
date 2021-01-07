@@ -46,4 +46,5 @@
 
     # General.
     Debug        = $true
+    DownloadPath = '.\Storage\Download'
 }
