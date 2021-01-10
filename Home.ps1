@@ -20,7 +20,6 @@ Start-PodeServer {
         $null = New-Item -ItemType Directory $Config['DownloadPath']
     }
     Add-PodeStaticRoute -Path '/download' -Source $Config['DownloadPath'] -DownloadOnly
-
     $DownloadSection = New-PodeWebCard -Name 'Download Section' -Content @(
         New-PodeWebForm -Name 'Search' -ArgumentList ($Config['Dummy'], $Config['Debug'], $Config['Exchange']) -ScriptBlock {
             param (
@@ -105,4 +104,22 @@ Start-PodeServer {
         $ResultsTable
     )
     Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts $DownloadSection
+
+    Add-PodeWebPage -Name 'Config' -Icon settings -ScriptBlock {
+        New-PodeWebCard -Name 'Config' -Content @(
+
+            New-PodeWebButton -Name 'Theme' -ScriptBlock {
+                # Wait-Debugger
+                $Value = if ((Get-PodeState -Name "pode.web.theme") -eq 'light') {
+                    'dark'
+                }
+                else {
+                    'light'
+                }
+                Set-PodeState -Name "pode.web.theme" -Value $Value -Scope 'pode.web' | Out-Null
+                # Move-PodeResponseUrl -Url $WebEvent.Request.UrlReferrer
+            }
+            New-PodeWebText -Value (Get-PodeState -Name "pode.web.theme")
+        )
+    }
 }

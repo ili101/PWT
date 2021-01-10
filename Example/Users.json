@@ -1,0 +1,21 @@
+[
+  {
+    "Groups": [
+      "Admin",
+      "Developer"
+    ],
+    "Name": "User 1",
+    "Email": "u1@example.com",
+    "Username": "u1",
+    "Password": "10/w7o2juYBrGMh32/KbveULW9jk2tejpyUAD+uC6PE="
+  },
+  {
+    "Groups": [
+      "Developer"
+    ],
+    "Name": "User 2",
+    "Email": "u2@example.com",
+    "Username": "u2",
+    "Password": "10/w7o2juYBrGMh32/KbveULW9jk2tejpyUAD+uC6PE="
+  }
+]
