@@ -40,23 +40,27 @@
             Get    = {
                 param($sessionId)
                 Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
-                return Invoke-SqlScalar -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\SessionGet.sql | Out-String) -f $sessionId) | ConvertFrom-Json -AsHashtable
+                return Invoke-SqlScalar -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemGet.sql | Out-String) -f $sessionId) | ConvertFrom-Json -AsHashtable
             }
             Set    = {
                 param($sessionId, $data, $expiry)
                 Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
-                $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\SessionSet.sql | Out-String) -f $sessionId, ($data | ConvertTo-Json -Depth 99), $expiry)
+                $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemSet.sql | Out-String) -f $sessionId, ($data | ConvertTo-Json -Depth 99), $expiry)
             }
             Delete = {
                 param($sessionId)
                 Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
-                $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\SessionDelete.sql | Out-String) -f $sessionId)
+                $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemDelete.sql | Out-String) -f $sessionId)
             }
         }
 
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MyDomain' -FilePath '.\Example\Users.json'
         Set-PodeWebLoginPage -Authentication 'MyDomain'
+
+        if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableGet.sql))) {
+            Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableCreate.sql)
+        }
     }
     #>
 
