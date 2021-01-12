@@ -1,4 +1,4 @@
-# Rename to "Config.ps1" and fill required information.
+# Copy to "Config.ps1" and fill required information.
 @{
     # Initialize.
     #Install-Module -Name Pode
@@ -22,14 +22,22 @@
         Use-PodeWebTemplates -Title Tools -Theme Dark
     }
 
-    <# Login (Optional uncomment).
+    # Login (Optional uncomment).
+    <# With AD:
     Login        = {
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
-        New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MyDomain' -Groups 'IT'
-        Set-PodeWebLoginPage -Authentication 'MyDomain'
+        New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT'
+        Set-PodeWebLoginPage -Authentication 'MainAuth'
     }
     #>
-    #<# Login from file with SQLite session.
+    <# Json file:
+    Login        = {
+        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
+        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
+        Set-PodeWebLoginPage -Authentication 'MainAuth'
+    }
+    #>
+    <# Login from file with SQLite session (Optional uncomment).
     Login        = {
         Import-Module -Name SimplySql
         Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))

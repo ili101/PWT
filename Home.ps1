@@ -8,6 +8,10 @@ Start-PodeServer {
     . $Config['Endpoint']
     if ($Config['Login']) {
         . $Config['Login']
+        $Authentication = @{ Authentication = 'MainAuth' }
+    }
+    else {
+        $Authentication = @{ }
     }
 
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging -Levels @('Error', 'Warning', 'Informational', 'Verbose', 'Debug')
@@ -19,9 +23,16 @@ Start-PodeServer {
     if (!(Test-Path -Path $Config['DownloadPath'])) {
         $null = New-Item -ItemType Directory $Config['DownloadPath']
     }
-    Add-PodeStaticRoute -Path '/download' -Source $Config['DownloadPath'] -DownloadOnly
-    $DownloadSection = New-PodeWebCard -Name 'Download Section' -Content @(
-        New-PodeWebForm -Name 'Search' -ArgumentList ($Config['Dummy'], $Config['Debug'], $Config['Exchange']) -ScriptBlock {
+    Add-PodeStaticRoute -Path '/download' -Source $Config['DownloadPath'] -DownloadOnly @Authentication
+
+    Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts = New-PodeWebCard -Name 'Download Section' -Content @(
+        New-PodeWebForm -Name 'Search' -Content @(
+            New-PodeWebDateTime -Name 'Start' -NoLabels
+            New-PodeWebDateTime -Name 'End' -NoLabels
+            New-PodeWebTextbox -Name 'Sender' -Type Email
+            New-PodeWebTextbox -Name 'Recipients' -Type Email
+            New-PodeWebTextbox -Name 'MessageSubject'
+        ) -ArgumentList ($Config['Dummy'], $Config['Debug'], $Config['Exchange']) -ScriptBlock {
             param (
                 $Dummy,
                 $Debug,
@@ -54,15 +65,12 @@ Start-PodeServer {
                         }
                     }
                 }
+
                 Import-Module -Name (Join-Path $PSScriptRoot 'EXLogLib.psm1')
                 Connect-Exchange @Exchange
                 $global:Results = Search-MessageTracking @InputData
                 Show-PodeWebToast -Message "Found $($Results.Length) results"
                 $Results | Format-Exchange | Out-PodeWebTable -Id 'TableResults'
-
-                # if ($Debug) {
-                #     $Results | Out-PodeWebTextbox -Multiline -Preformat
-                # }
             }
             catch {
                 if ($Debug) {
@@ -75,13 +83,7 @@ Start-PodeServer {
                     $ErrorMsg | Out-PodeWebTextbox -Multiline -Preformat
                 }
             }
-        } -Content @(
-            New-PodeWebDateTime -Name 'Start' -NoLabels
-            New-PodeWebDateTime -Name 'End' -NoLabels
-            New-PodeWebTextbox -Name 'Sender' -Type Email
-            New-PodeWebTextbox -Name 'Recipients' -Type Email
-            New-PodeWebTextbox -Name 'MessageSubject'
-        )
+        }
         New-PodeWebLink -Source 'https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/message-tracking?view=exchserver-2019#event-types-in-the-message-tracking-log' -Value 'Event types in the message tracking log' -NewTab
         $ResultsTable = New-PodeWebTable -Name 'Results' -Id 'TableResults' -Filter
         $ResultsTable | Add-PodeWebTableButton -Name 'DownloadExcel' -Icon 'Bar-Chart' -ArgumentList ($Config['DownloadPath']) -ScriptBlock {
@@ -103,7 +105,6 @@ Start-PodeServer {
         }
         $ResultsTable
     )
-    Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts $DownloadSection
 
     Add-PodeWebPage -Name 'Config' -Icon settings -ScriptBlock {
         New-PodeWebCard -Name 'Config' -Content @(
