@@ -151,7 +151,7 @@ Start-PodeServer {
                         'null'
                     }
                     else {
-                        # TODO: New-PodeWebSelect should return $true instead of 'true'?
+                        # TODO: Pode.Web: New-PodeWebSelect should return $true instead of 'true'?
                         if ($Config.Value -is [String] -and $Config.Value -notin 'true', 'false') {
                             "'" + $Config.Value + "'"
                         }
@@ -162,7 +162,7 @@ Start-PodeServer {
                 }
                 # Connect-Database
                 $ConfigTable = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemSet.sql | Out-String) -f $WebEvent.Auth.User.Username, ($ConfigNames -join ', '), ($ConfigValues -join ', '))
-                # TODO: Refresh page here.
+                # TODO: Pode.Web: Refresh page here.
             }
         )
     }
