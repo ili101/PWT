@@ -1,4 +1,4 @@
-# Rename to "Config.ps1" and fill required information.
+# Copy to "Config.ps1" and fill required information.
 @{
     # Initialize.
     #Install-Module -Name Pode
@@ -22,46 +22,62 @@
         Use-PodeWebTemplates -Title Tools -Theme Dark
     }
 
-    <# Login (Optional uncomment).
+    # Login [ScriptBlock] (Optional uncomment). If used LoginAuthenticationName [String] is required with the Authentication name.
+    <# With AD:
     Login        = {
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
-        New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MyDomain' -Groups 'IT'
-        Set-PodeWebLoginPage -Authentication 'MyDomain'
+        New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT'
+        Set-PodeWebLoginPage -Authentication 'MainAuth'
     }
+    LoginAuthenticationName = 'MainAuth'
     #>
-    #<# Login from file with SQLite session.
+    <# Json file (Useful for testing):
+    Login        = {
+        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
+        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
+        Set-PodeWebLoginPage -Authentication 'MainAuth'
+    }
+    LoginAuthenticationName = 'MainAuth'
+    #>
+    <# Login from Json file with SQLite persistent session and user configuration page:
+    # You can edit this to use AD + SQLite for example. If needed I can add an SQLite only example that stores the users in it.
     Login        = {
         Import-Module -Name SimplySql
-        Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+        Connect-Database
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableGet.sql))) {
-            Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableCreate.sql)
+            $null = Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableCreate.sql)
         }
         $Store = [PSCustomObject]@{
             Get    = {
                 param($sessionId)
-                Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+                Connect-Database
                 return Invoke-SqlScalar -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemGet.sql | Out-String) -f $sessionId) | ConvertFrom-Json -AsHashtable
             }
             Set    = {
                 param($sessionId, $data, $expiry)
-                Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+                Connect-Database
                 $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemSet.sql | Out-String) -f $sessionId, ($data | ConvertTo-Json -Depth 99), $expiry)
             }
             Delete = {
                 param($sessionId)
-                Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+                Connect-Database
                 $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemDelete.sql | Out-String) -f $sessionId)
             }
         }
 
-        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
-        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MyDomain' -FilePath '.\Example\Users.json'
-        Set-PodeWebLoginPage -Authentication 'MyDomain'
+        # TODO: Pode: -Extend not implemented in Pode with default and with -Storage?
+        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage $Store
+        # TODO: Pode: Theme set on login https://github.com/Badgerati/Pode/issues/657.
+        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
+        Set-PodeWebLoginPage -Authentication 'MainAuth'
 
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableGet.sql))) {
-            Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableCreate.sql)
+            $null = Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableCreate.sql)
         }
     }
+    LoginAuthenticationName = 'MainAuth'
+    # Enable the SQLite user configuration page:
+    LoginUserConfiguration = $true
     #>
 
     # Exchange Config.
