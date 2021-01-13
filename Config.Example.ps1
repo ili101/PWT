@@ -37,34 +37,34 @@
         Set-PodeWebLoginPage -Authentication 'MainAuth'
     }
     #>
-    <# Login from file with SQLite session (Optional uncomment).
+    #<# Login from file with SQLite session (Optional uncomment).
     Login        = {
         Import-Module -Name SimplySql
-        Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+        Connect-Database
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableGet.sql))) {
             Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableCreate.sql)
         }
         $Store = [PSCustomObject]@{
             Get    = {
                 param($sessionId)
-                Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+                Connect-Database
                 return Invoke-SqlScalar -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemGet.sql | Out-String) -f $sessionId) | ConvertFrom-Json -AsHashtable
             }
             Set    = {
                 param($sessionId, $data, $expiry)
-                Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+                Connect-Database
                 $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemSet.sql | Out-String) -f $sessionId, ($data | ConvertTo-Json -Depth 99), $expiry)
             }
             Delete = {
                 param($sessionId)
-                Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+                Connect-Database
                 $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemDelete.sql | Out-String) -f $sessionId)
             }
         }
-
-        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
-        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MyDomain' -FilePath '.\Example\Users.json'
-        Set-PodeWebLoginPage -Authentication 'MyDomain'
+        # TODO: -Extend not implemented in Pode?
+        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage $Store
+        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
+        Set-PodeWebLoginPage -Authentication 'MainAuth'
 
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableGet.sql))) {
             Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableCreate.sql)
