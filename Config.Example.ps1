@@ -37,7 +37,7 @@
         Set-PodeWebLoginPage -Authentication 'MainAuth'
     }
     #>
-    #<# Login from file with SQLite session (Optional uncomment).
+    #<# Login from file with SQLite session:
     Login        = {
         Import-Module -Name SimplySql
         Connect-Database
@@ -61,6 +61,7 @@
                 $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\Session\ItemDelete.sql | Out-String) -f $sessionId)
             }
         }
+
         # TODO: -Extend not implemented in Pode?
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage $Store
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
