@@ -16,7 +16,10 @@ Start-PodeServer {
     . $Config['Endpoint']
     if ($Config['Login']) {
         . $Config['Login']
-        $Authentication = @{ Authentication = 'MainAuth' }
+        if ([String]::IsNullOrWhiteSpace($Config['LoginAuthenticationName'])) {
+            throw 'When "Login" configured "LoginAuthenticationName" is required.'
+        }
+        $Authentication = @{ Authentication = $Config['LoginAuthenticationName'] }
     }
     else {
         $Authentication = @{}
@@ -114,64 +117,66 @@ Start-PodeServer {
             $ResultsTable
         )
     )
-    Add-PodeWebPage -Name 'Config' -Icon settings -ScriptBlock {
-        New-PodeWebCard -Name 'Preference' -Content @(
-            New-PodeWebForm -Name 'Search' -Content @(
-                # Connect-Database
-                $ConfigTable = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $WebEvent.Auth.User.Username) -AsDataTable
-                foreach ($Column in ($ConfigTable.Columns | Where-Object 'ColumnName' -NE 'Name')) {
-                    # TODO: Add description, options, Type to SQL?
-                    switch ($Column.DataType.Name) {
-                        'Boolean' {
-                            $Params = if ($ConfigTable.Rows[0].($Column.ColumnName)) {
-                                @{ Checked = $true }
+    if ($Config['LoginUserConfiguration']) {
+        Add-PodeWebPage -Name 'Config' -Icon settings -ScriptBlock {
+            New-PodeWebCard -Name 'Preference' -Content @(
+                New-PodeWebForm -Name 'Search' -Content @(
+                    # Connect-Database
+                    $ConfigTable = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $WebEvent.Auth.User.Username) -AsDataTable
+                    foreach ($Column in ($ConfigTable.Columns | Where-Object 'ColumnName' -NE 'Name')) {
+                        # TODO: Add description, options, Type to SQL?
+                        switch ($Column.DataType.Name) {
+                            'Boolean' {
+                                $Params = if ($ConfigTable.Rows[0].($Column.ColumnName)) {
+                                    @{ Checked = $true }
+                                }
+                                else {
+                                    @{}
+                                }
+                                New-PodeWebCheckbox -Name $Column.ColumnName -AsSwitch @Params
                             }
-                            else {
-                                @{}
-                            }
-                            New-PodeWebCheckbox -Name $Column.ColumnName -AsSwitch @Params
-                        }
-                        'Int32' { New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName) -Type Number }
-                        Default {
-                            if ($Column.ColumnName -eq 'Theme') {
-                                New-PodeWebSelect -Name $Column.ColumnName -Options 'Ligth', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName)
-                            }
-                            else {
-                                New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName)
+                            'Int32' { New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName) -Type Number }
+                            Default {
+                                if ($Column.ColumnName -eq 'Theme') {
+                                    New-PodeWebSelect -Name $Column.ColumnName -Options 'Ligth', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName)
+                                }
+                                else {
+                                    New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName)
+                                }
                             }
                         }
                     }
-                }
-            ) -ScriptBlock {
-                $ConfigNames = @()
-                $ConfigValues = @()
-                $Configs = @{}
-                foreach ($Config in $WebEvent.Data.GetEnumerator()) {
-                    $ConfigNames += '"' + $Config.Name + '"'
-                    $ConfigValues += if ($Config.Value -eq 'Choose an option') {
-                        'null'
-                    }
-                    else {
-                        # TODO: Pode.Web: New-PodeWebSelect should return $true instead of 'true'?
-                        if ($Config.Value -is [String] -and $Config.Value -notin 'true', 'false') {
-                            "'" + $Config.Value + "'"
+                ) -ScriptBlock {
+                    $ConfigNames = @()
+                    $ConfigValues = @()
+                    $Configs = @{}
+                    foreach ($Config in $WebEvent.Data.GetEnumerator()) {
+                        $ConfigNames += '"' + $Config.Name + '"'
+                        $ConfigValues += if ($Config.Value -eq 'Choose an option') {
+                            'null'
                         }
                         else {
-                            $Config.Value
+                            # TODO: Pode.Web: New-PodeWebSelect should return $true instead of 'true'?
+                            if ($Config.Value -is [String] -and $Config.Value -notin 'true', 'false') {
+                                "'" + $Config.Value + "'"
+                            }
+                            else {
+                                $Config.Value
+                            }
                         }
                     }
+                    # Connect-Database
+                    $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemSet.sql | Out-String) -f $WebEvent.Auth.User.Username, ($ConfigNames -join ', '), ($ConfigValues -join ', '))
+                    $ConfigTable = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $WebEvent.Auth.User.Username)
+                    if ($ConfigTable.Theme -is [DBNull]) {
+                        $WebEvent.Auth.User.Remove('Theme')
+                    }
+                    else {
+                        $WebEvent.Auth.User.Theme = $ConfigTable.Theme
+                    }
+                    # TODO: Pode.Web: Refresh page here.
                 }
-                # Connect-Database
-                $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemSet.sql | Out-String) -f $WebEvent.Auth.User.Username, ($ConfigNames -join ', '), ($ConfigValues -join ', '))
-                $ConfigTable = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $WebEvent.Auth.User.Username)
-                if ($ConfigTable.Theme -is [DBNull]) {
-                    $WebEvent.Auth.User.Remove('Theme')
-                }
-                else {
-                    $WebEvent.Auth.User.Theme = $ConfigTable.Theme
-                }
-                # TODO: Pode.Web: Refresh page here.
-            }
-        )
+            )
+        }
     }
 }

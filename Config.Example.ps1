@@ -22,13 +22,14 @@
         Use-PodeWebTemplates -Title Tools -Theme Dark
     }
 
-    # Login (Optional uncomment).
+    # Login [ScriptBlock] (Optional uncomment). If used LoginAuthenticationName [String] is required with the Authentication name.
     <# With AD:
     Login        = {
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
         New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT'
         Set-PodeWebLoginPage -Authentication 'MainAuth'
     }
+    LoginAuthenticationName = 'MainAuth'
     #>
     <# Json file:
     Login        = {
@@ -36,8 +37,9 @@
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
         Set-PodeWebLoginPage -Authentication 'MainAuth'
     }
+    LoginAuthenticationName = 'MainAuth'
     #>
-    #<# Login from file with SQLite session:
+    <# Login from Json file with SQLite persistent session and user configuration page:
     Login        = {
         Import-Module -Name SimplySql
         Connect-Database
@@ -72,6 +74,9 @@
             $null = Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableCreate.sql)
         }
     }
+    LoginAuthenticationName = 'MainAuth'
+    # Enable the SQLite user configuration page:
+    LoginUserConfiguration = $true
     #>
 
     # Exchange Config.
