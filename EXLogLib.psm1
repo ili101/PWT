@@ -25,6 +25,7 @@ function Connect-Exchange {
                 Sender         = 'me@example.com'
                 Recipients     = 'you@example.com'
                 MessageSubject = 'Nerd stuff'
+                Details        = 'Foo'
             },
             [PSCustomObject]@{
                 Timestamp      = Get-Date
@@ -33,6 +34,7 @@ function Connect-Exchange {
                 Sender         = 'me@example.com'
                 Recipients     = 'you@example.com'
                 MessageSubject = 'Nerd stuff 2'
+                Details        = 'Foo'
             }
         )
     }
