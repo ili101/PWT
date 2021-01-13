@@ -115,47 +115,34 @@ Start-PodeServer {
         )
     )
     Add-PodeWebPage -Name 'Config' -Icon settings -ScriptBlock {
-        New-PodeWebCard -Name 'Config' -Content @(
-            New-PodeWebButton -Name 'Theme' -ScriptBlock {
-                # Wait-Debugger
-                $Value = if ((Get-PodeState -Name "pode.web.theme") -eq 'light') {
-                    'dark'
-                }
-                else {
-                    'light'
-                }
-                Set-PodeState -Name "pode.web.theme" -Value $Value -Scope 'pode.web' | Out-Null
-                # Move-PodeResponseUrl -Url $WebEvent.Request.UrlReferrer
-            }
-            New-PodeWebText -Value (Get-PodeState -Name "pode.web.theme")
-        )
-        New-PodeWebCard -Name 'ConfigDb' -Content @(
-            # Connect-Database
-            $ConfigTable = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $WebEvent.Auth.User.Username) -AsDataTable
-            $FormContent = foreach ($Column in ($ConfigTable.Columns | Where-Object 'ColumnName' -NE 'Name')) {
-                switch ($Column.DataType.Name) {
-                    'Boolean' {
-                        $Params = if ($ConfigTable.Rows[0].($Column.ColumnName)) {
-                            @{ Checked = $true }
-                        }
-                        else {
-                            @{ }
-                        }
-                        New-PodeWebCheckbox -Name $Column.ColumnName -AsSwitch @Params
-                    }
-                    'Int32' { New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName) -Type Number }
-                    Default {
-                        if ($Column.ColumnName -eq 'Theme') {
-                            New-PodeWebSelect -Name $Column.ColumnName -Options 'Ligth', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName)
-                        }
-                        else {
-                            New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName)
-                        }
-                    }
-                }
-            }
-            New-PodeWebForm -Name 'Search' -Content $FormContent -ScriptBlock {
+        New-PodeWebCard -Name 'Preference' -Content @(
+            New-PodeWebForm -Name 'Search' -Content @(
                 # Connect-Database
+                $ConfigTable = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $WebEvent.Auth.User.Username) -AsDataTable
+                foreach ($Column in ($ConfigTable.Columns | Where-Object 'ColumnName' -NE 'Name')) {
+                    # TODO: Add description, options, Type to SQL?
+                    switch ($Column.DataType.Name) {
+                        'Boolean' {
+                            $Params = if ($ConfigTable.Rows[0].($Column.ColumnName)) {
+                                @{ Checked = $true }
+                            }
+                            else {
+                                @{ }
+                            }
+                            New-PodeWebCheckbox -Name $Column.ColumnName -AsSwitch @Params
+                        }
+                        'Int32' { New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName) -Type Number }
+                        Default {
+                            if ($Column.ColumnName -eq 'Theme') {
+                                New-PodeWebSelect -Name $Column.ColumnName -Options 'Ligth', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName)
+                            }
+                            else {
+                                New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName)
+                            }
+                        }
+                    }
+                }
+            ) -ScriptBlock {
                 $ConfigNames = @()
                 $ConfigValues = @()
                 foreach ($Config in $WebEvent.Data.GetEnumerator()) {
@@ -164,7 +151,8 @@ Start-PodeServer {
                         'null'
                     }
                     else {
-                        if ($Config.Value -is [String]) {
+                        # TODO: New-PodeWebSelect should return $true instead of 'true'?
+                        if ($Config.Value -is [String] -and $Config.Value -notin 'true', 'false') {
                             "'" + $Config.Value + "'"
                         }
                         else {
@@ -172,7 +160,9 @@ Start-PodeServer {
                         }
                     }
                 }
+                # Connect-Database
                 $ConfigTable = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemSet.sql | Out-String) -f $WebEvent.Auth.User.Username, ($ConfigNames -join ', '), ($ConfigValues -join ', '))
+                # TODO: Refresh page here.
             }
         )
     }

@@ -62,7 +62,7 @@
             }
         }
 
-        # TODO: -Extend not implemented in Pode?
+        # TODO: -Extend not implemented in Pode with default and with -Storage?
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage $Store
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
         Set-PodeWebLoginPage -Authentication 'MainAuth'
