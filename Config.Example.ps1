@@ -31,7 +31,7 @@
     }
     LoginAuthenticationName = 'MainAuth'
     #>
-    <# Json file:
+    <# Json file (Useful for testing):
     Login        = {
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
@@ -40,6 +40,7 @@
     LoginAuthenticationName = 'MainAuth'
     #>
     <# Login from Json file with SQLite persistent session and user configuration page:
+    # You can edit this to use AD + SQLite for example. If needed I can add an SQLite only example that stores the users in it.
     Login        = {
         Import-Module -Name SimplySql
         Connect-Database

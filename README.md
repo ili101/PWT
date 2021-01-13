@@ -18,7 +18,7 @@ This project can be used as a template of other tools. You can write and add mor
 
 If you made other tools or have ideas for one contact on GitHub. If there is interest maybe we will make a tool collection that you select the tools you want from?
 
-The tool also include an optional SQLite system that allows logins session to persistent server restart and a user configuration page. Can be useful example for other tools that need to save users data.
+The tool also include an optional SQLite system that allows logins session to persistent server restart and a user configuration page. Can be useful example for other tools that need to store users data.
 
 ## Need help?
 Open an [Issue](https://github.com/ili101/ExchangeMessageTrackingLogWeb/issues)
