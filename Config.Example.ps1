@@ -42,7 +42,7 @@
         Import-Module -Name SimplySql
         Connect-Database
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableGet.sql))) {
-            Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableCreate.sql)
+            $null = Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableCreate.sql)
         }
         $Store = [PSCustomObject]@{
             Get    = {
@@ -69,7 +69,7 @@
         Set-PodeWebLoginPage -Authentication 'MainAuth'
 
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableGet.sql))) {
-            Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableCreate.sql)
+            $null = Invoke-SqlUpdate -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableCreate.sql)
         }
     }
     #>

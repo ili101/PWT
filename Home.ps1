@@ -19,9 +19,9 @@ Start-PodeServer {
         $Authentication = @{ Authentication = 'MainAuth' }
     }
     else {
-        $Authentication = @{ }
+        $Authentication = @{}
     }
-    New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging -Levels @('Error', 'Warning', 'Informational', 'Verbose', 'Debug')
+    New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
     if ($Config['Debug']) {
         Write-Debug "PID: $PID" -Debug
@@ -127,7 +127,7 @@ Start-PodeServer {
                                 @{ Checked = $true }
                             }
                             else {
-                                @{ }
+                                @{}
                             }
                             New-PodeWebCheckbox -Name $Column.ColumnName -AsSwitch @Params
                         }
@@ -145,6 +145,7 @@ Start-PodeServer {
             ) -ScriptBlock {
                 $ConfigNames = @()
                 $ConfigValues = @()
+                $Configs = @{}
                 foreach ($Config in $WebEvent.Data.GetEnumerator()) {
                     $ConfigNames += '"' + $Config.Name + '"'
                     $ConfigValues += if ($Config.Value -eq 'Choose an option') {
@@ -161,7 +162,14 @@ Start-PodeServer {
                     }
                 }
                 # Connect-Database
-                $ConfigTable = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemSet.sql | Out-String) -f $WebEvent.Auth.User.Username, ($ConfigNames -join ', '), ($ConfigValues -join ', '))
+                $null = Invoke-SqlUpdate -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemSet.sql | Out-String) -f $WebEvent.Auth.User.Username, ($ConfigNames -join ', '), ($ConfigValues -join ', '))
+                $ConfigTable = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $WebEvent.Auth.User.Username)
+                if ($ConfigTable.Theme -is [DBNull]) {
+                    $WebEvent.Auth.User.Remove('Theme')
+                }
+                else {
+                    $WebEvent.Auth.User.Theme = $ConfigTable.Theme
+                }
                 # TODO: Pode.Web: Refresh page here.
             }
         )
