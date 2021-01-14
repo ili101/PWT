@@ -4,10 +4,10 @@
     #Install-Module -Name Pode
     #Install-Module -Name Pode.Web
     #Install-Module -Name ImportExcel
-    ModulesPaths  = @( 'Pode', 'Pode.Web', 'ImportExcel' )
+    ModulesPaths            = @( 'Pode', 'Pode.Web', 'ImportExcel' )
 
     # URL, Certificate, Theme & Title.
-    Endpoint     = {
+    Endpoint                = {
         # Http
         Add-PodeEndpoint -Address localhost -Protocol Http
 
@@ -19,12 +19,13 @@
         #Add-PodeEndpoint -Address 109.226.1.69 -Port 443 -Protocol Https -X509Certificate $Certificate
 
         # Theme & Title
+        # TODO: Pode.Web: -Theme Auto?
         Use-PodeWebTemplates -Title Tools -Theme Dark
     }
 
     # Login [ScriptBlock] (Optional uncomment). If used LoginAuthenticationName [String] is required with the Authentication name.
     <# With AD:
-    Login        = {
+    Login                   = {
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
         New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT'
         Set-PodeWebLoginPage -Authentication 'MainAuth'
@@ -32,7 +33,7 @@
     LoginAuthenticationName = 'MainAuth'
     #>
     <# Json file (Useful for testing):
-    Login        = {
+    Login                   = {
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
         Set-PodeWebLoginPage -Authentication 'MainAuth'
@@ -41,7 +42,7 @@
     #>
     <# Login from Json file with SQLite persistent session and user configuration page:
     # You can edit this to use AD + SQLite for example. If needed I can add an SQLite only example that stores the users in it.
-    Login        = {
+    Login                   = {
         Import-Module -Name SimplySql
         Connect-Database
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\Session\TableGet.sql))) {
@@ -67,8 +68,15 @@
 
         # TODO: Pode: -Extend not implemented in Pode with default and with -Storage?
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage $Store
-        # TODO: Pode: Theme set on login https://github.com/Badgerati/Pode/issues/657.
-        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
+        New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json' -ScriptBlock {
+            param($User)
+            Connect-Database
+            $Config = Invoke-SqlQuery -ConnectionName SQLite -Query ((Get-Content .\SQL\User\ItemGet.sql | Out-String) -f $User.Username)
+            if ($Config.Theme) {
+                $User.Theme = $Config.Theme
+            }
+            return @{ User = $User }
+        }
         Set-PodeWebLoginPage -Authentication 'MainAuth'
 
         if (!(Invoke-SqlScalar -ConnectionName SQLite -Query (Get-Content .\SQL\User\TableGet.sql))) {
@@ -77,13 +85,13 @@
     }
     LoginAuthenticationName = 'MainAuth'
     # Enable the SQLite user configuration page:
-    LoginUserConfiguration = $true
+    LoginUserConfiguration  = $true
     #>
 
     # Exchange Config.
-    Exchange     = @{
+    Exchange                = @{
         # For demo test mode:
-        Dummy         = $true
+        Dummy = $true
 
         # For remote connection:
         #ConnectionUri = 'http://exchange.example.com/powershell'
@@ -95,6 +103,6 @@
     }
 
     # General.
-    Debug        = $true
-    DownloadPath = '.\Storage\Download'
+    Debug                   = $true
+    DownloadPath            = '.\Storage\Download'
 }

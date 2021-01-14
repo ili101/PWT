@@ -24,6 +24,7 @@ Start-PodeServer {
     else {
         $Authentication = @{}
     }
+    # TODO: Pode: 'Enable-PodeErrorLogging -Levels' works?
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
     if ($Config['Debug']) {
@@ -165,11 +166,11 @@ Start-PodeServer {
                 $ConfigValues = @()
                 foreach ($Config in $WebEvent.Data.GetEnumerator()) {
                     $ConfigNames += '"' + $Config.Name + '"'
+                    # TODO: Pode.Web: Remove 'Choose an option'?
                     $ConfigValues += if ($Config.Value -eq 'Choose an option') {
                         'null'
                     }
                     else {
-                        # TODO: Pode.Web: New-PodeWebSelect should return $true instead of 'true'?
                         if ($Config.Value -is [String] -and $Config.Value -notin 'true', 'false') {
                             "'" + $Config.Value + "'"
                         }
