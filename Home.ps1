@@ -108,7 +108,7 @@ Start-PodeServer {
                 else {
                     Join-Path (Get-PodeServerPath) $DownloadPath
                 }
-                $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd hh-mm-ss}.xlsx' -f (Get-Date))
+                $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd HH-mm-ss}.xlsx' -f (Get-Date))
                 $WebEvent.Data | ForEach-Object { $_.Timestamp = Get-Date -Date $_.Timestamp }
                 Export-Excel -InputObject $WebEvent.Data -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $PathRoot $PathLeaf)
                 Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
@@ -126,7 +126,7 @@ Start-PodeServer {
                 else {
                     Join-Path (Get-PodeServerPath) $DownloadPath
                 }
-                $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd hh-mm-ss}.xlsx' -f (Get-Date))
+                $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd HH-mm-ss}.xlsx' -f (Get-Date))
                 Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $PathRoot $PathLeaf)
                 Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
             }

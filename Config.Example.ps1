@@ -34,7 +34,7 @@
     #>
     <# Json file (Useful for testing):
     Login                   = {
-        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend -Storage $Store
+        Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json'
         Set-PodeWebLoginPage -Authentication 'MainAuth'
     }
@@ -66,7 +66,6 @@
             }
         }
 
-        # TODO: Pode: -Extend not implemented in Pode with default and with -Storage?
         Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage $Store
         New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath '.\Example\Users.json' -ScriptBlock {
             param($User)
