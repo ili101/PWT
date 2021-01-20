@@ -24,7 +24,6 @@ Start-PodeServer {
     else {
         $Authentication = @{}
     }
-    # TODO: Pode: 'Enable-PodeErrorLogging -Levels' works?
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
     if ($Config['Debug']) {
@@ -153,7 +152,7 @@ Start-PodeServer {
                         'Int32' { New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName) -Type Number }
                         Default {
                             if ($Column.ColumnName -eq 'Theme') {
-                                New-PodeWebSelect -Name $Column.ColumnName -Options 'Ligth', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName)
+                                New-PodeWebSelect -Name $Column.ColumnName -Options 'Auto', 'Ligth', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName) -ChooseOptionValue 'Default'
                             }
                             else {
                                 New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName)
@@ -166,8 +165,7 @@ Start-PodeServer {
                 $ConfigValues = @()
                 foreach ($Config in $WebEvent.Data.GetEnumerator()) {
                     $ConfigNames += '"' + $Config.Name + '"'
-                    # TODO: Pode.Web: Remove 'Choose an option'?
-                    $ConfigValues += if ($Config.Value -eq 'Choose an option') {
+                    $ConfigValues += if ($Config.Value -eq 'Default') {
                         'null'
                     }
                     else {

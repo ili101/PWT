@@ -19,8 +19,7 @@
         #Add-PodeEndpoint -Address 109.226.1.69 -Port 443 -Protocol Https -X509Certificate $Certificate
 
         # Theme & Title
-        # TODO: Pode.Web: -Theme Auto?
-        Use-PodeWebTemplates -Title Tools -Theme Dark
+        Use-PodeWebTemplates -Title Tools -Theme Auto
     }
 
     # Login [ScriptBlock] (Optional uncomment). If used LoginAuthenticationName [String] is required with the Authentication name.
