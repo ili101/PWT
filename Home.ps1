@@ -152,7 +152,7 @@ Start-PodeServer {
                         'Int32' { New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName) -Type Number }
                         Default {
                             if ($Column.ColumnName -eq 'Theme') {
-                                New-PodeWebSelect -Name $Column.ColumnName -Options 'Auto', 'Ligth', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName) -ChooseOptionValue 'Default'
+                                New-PodeWebSelect -Name $Column.ColumnName -Options 'Auto', 'Light', 'Dark' -SelectedValue $ConfigTable.Rows[0].($Column.ColumnName) -ChooseOptionValue 'Default'
                             }
                             else {
                                 New-PodeWebTextbox -Name $Column.ColumnName -Value $ConfigTable.Rows[0].($Column.ColumnName)
