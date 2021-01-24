@@ -1,7 +1,13 @@
 $Config = .\Config.ps1
 
+$ImportParams = if ($Config['Debug']) {
+    @{ Force = $true }
+}
+else {
+    @{}
+}
 foreach ($ModulesPath in $Config['ModulesPaths']) {
-    Import-Module -Name $ModulesPath
+    Import-Module -Name $ModulesPath @ImportParams
 }
 
 function Connect-Database {

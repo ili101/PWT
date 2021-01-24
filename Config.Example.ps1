@@ -16,7 +16,11 @@
 
         # Https Certificate
         #$Certificate = Get-PfxCertificate -FilePath 'MyCert.pfx' -Password 'PfxPass'
-        #Add-PodeEndpoint -Address 109.226.1.69 -Port 443 -Protocol Https -X509Certificate $Certificate
+        #Add-PodeEndpoint -Address 192.168.1.69 -Port 443 -Protocol Https -X509Certificate $Certificate -Name 'Main'
+
+        # Redirect http to https
+        #Add-PodeEndpoint -Address 192.168.1.69 -Port 80 -Protocol Http -Name 'Redirect'
+        #Add-PodeRoute -Method * -Path * -EndpointName 'Redirect' -ScriptBlock { Move-PodeResponseUrl -Protocol Https -Port 443 }
 
         # Theme & Title
         Use-PodeWebTemplates -Title Tools -Theme Auto
