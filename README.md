@@ -31,4 +31,3 @@ If you fund a bug, added functionality or anything else just fork and send pull 
 [CHANGELOG.md](https://github.com/ili101/ExchangeMessageTrackingLogWeb/blob/master/CHANGELOG.md)
 
 ## To do
-* Excel download button.
