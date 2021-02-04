@@ -14,7 +14,8 @@ $ConfigPstPath = @('Config.ps1')
 if ($env:PODE_ENVIRONMENT) {
     $ConfigPstPath = , "Config.$($env:PODE_ENVIRONMENT).ps1" + $ConfigPstPath
 }
-$ConfigPst = & ($ConfigPstPath | ForEach-Object { Join-Path $ScriptRoot $_ } | Where-Object { $_ | Test-Path } | Select-Object -First 1)
+$ConfigPstPath = $ConfigPstPath | ForEach-Object { Join-Path $ScriptRoot $_ } | Where-Object { $_ | Test-Path } | Select-Object -First 1
+$ConfigPst = & $ConfigPstPath
 
 # Import Modules.
 $ImportParams = if ($ConfigPst['Global']['Debug']) {
@@ -30,6 +31,7 @@ foreach ($ModulesPath in $ConfigPst['Global']['ModulesPaths']) {
 Start-PodeServer {
     Import-Module -Name (Join-Path (Get-PodeServerPath) '\Components\Core\Functions.psm1')
     $Config = Get-PodeConfig
+    $ConfigPst = & $ConfigPstPath
     $ConfigPst.GetEnumerator() | ForEach-Object { $Config[$_.Name] = $_.Value }
 
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging

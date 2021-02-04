@@ -83,5 +83,11 @@
                 #Tools         = $true
             }
         }
+        Drive = @{
+            # Enable this tool
+            Enable = $false
+
+            RootPath = '.\Storage\Drive'
+        }
     }
 }
