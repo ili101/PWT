@@ -49,10 +49,10 @@
         # You can edit this to use AD + SQLite for example. If needed I can add an SQLite only example that stores the users in it.
         Login                   = {
             Import-Module -Name SimplySql
-            Import-Module -Name (Join-Path (Get-PodeServerPath) '\Components\SQLite\SqlHelper.psm1')
-            Connect-Database
+            Import-Module -Name (Join-Path (Get-PodeServerPath) '\Components\SQLite\Pwt.SQLite.Helper.psm1')
+            Connect-Sql
             Invoke-SqlCreateTables
-            Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage (New-SqlStoreObject)
+            Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage (New-SqlPodeStoreObject)
             New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath (Join-Path (Get-PodeServerPath) '\Components\Json\Example.json') -ScriptBlock (New-SqlPodeAuthScriptBlock)
             Set-PodeWebLoginPage -Authentication 'MainAuth'
         }
@@ -63,6 +63,7 @@
 
         # General.
         Debug                   = $true
+        StoragePath             = '.\Storage\'
         DownloadPath            = '.\Storage\Download'
     }
     Tools  = @{
@@ -87,7 +88,7 @@
             # Enable this tool
             Enable = $false
 
-            RootPath = '.\Storage\Drive'
+            DriveRootPath = '.\Storage\Drive'
         }
     }
 }

@@ -1,4 +1,4 @@
-
+# Example of how to create/edit "Users.json".
 function Invoke-PodeSHA256Hash {
     param (
         [Parameter(Mandatory = $true)]

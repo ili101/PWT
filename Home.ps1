@@ -29,10 +29,11 @@ foreach ($ModulesPath in $ConfigPst['Global']['ModulesPaths']) {
 }
 
 Start-PodeServer {
-    Import-Module -Name (Join-Path (Get-PodeServerPath) '\Components\Core\Functions.psm1')
+    Import-Module -Name (Join-Path (Get-PodeServerPath) '\Components\Core\Pwt.Core.Helper.psm1')
     $Config = Get-PodeConfig
     $ConfigPst = & $ConfigPstPath
     $ConfigPst.GetEnumerator() | ForEach-Object { $Config[$_.Name] = $_.Value }
+    'StoragePath', 'DownloadPath' | ForEach-Object { $Config['Global'][$_] = $Config['Global'][$_] | Get-RootedPath }
 
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
