@@ -1,11 +1,11 @@
 # TODO: Support subfolders.
-
 # Initialize.
-$DriveRootPath = $Config['Tools']['Drive']['DriveRootPath'] = $Config['Tools']['Drive']['DriveRootPath'] | Get-RootedPath
+Import-Module -Name (Join-Path $PSScriptRoot 'Pwt.Drive.Helper.psm1')
+$DriveRootPath = $Config['Tools']['Drive']['DriveRootPath'] = $Config['Tools']['Drive']['DriveRootPath'] | Get-PwtRootedPath
 if (!(Test-Path -Path $DriveRootPath)) {
     $null = New-Item -ItemType Directory $DriveRootPath
 }
-Add-PodeStaticRoute -Path '/drive' -Source $DriveRootPath -DownloadOnly @Authentication
+Add-PodeStaticRoute -Path '/drive' -Source $DriveRootPath -DownloadOnly @RouteParams
 
 $ExplorerConfirmModal = New-PodeWebModal -Name 'Delete Item' -Id 'DriveDeleteConfirm' -AsForm -Content @(
     New-PodeWebAlert -Type Warning -Id 'DriveDeleteConfirmAlert' -Value '[Placeholder]'
@@ -18,8 +18,6 @@ $ExplorerConfirmModal = New-PodeWebModal -Name 'Delete Item' -Id 'DriveDeleteCon
     Sync-PodeWebTable -Id 'DriveExplorer'
 }
 $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -DataColumn Name -Filter -Sort -Click -Paginate -ScriptBlock {
-    Import-Module -Name (Join-Path $PSScriptRoot 'Pwt.Drive.Helper.psm1')
-
     # $DriveWorkingPath = (Get-PodeConfig)['Tools']['Drive']['DriveRootPath']
     $DriveWorkingPath = $WebEvent.Session.Data.DriveWorkingPath
 

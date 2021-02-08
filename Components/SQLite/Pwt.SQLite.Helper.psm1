@@ -65,7 +65,7 @@ function Invoke-Sql {
 
             # QueryPath
             if ($QueryPath) {
-                $PSBoundParameters['Query'] = Get-Content -Path ($QueryPath | Get-RootedPath)
+                $PSBoundParameters['Query'] = Get-Content -Path ($QueryPath | Get-PwtRootedPath)
             }
             $null = $PSBoundParameters.Remove('QueryPath')
 
@@ -173,5 +173,29 @@ function New-SqlPodeAuthScriptBlock {
             $User.Theme = $Config.Theme
         }
         return @{ User = $User }
+    }
+}
+function Initialize-SqlComponent {
+    [CmdletBinding()]
+    param (
+        # Enable users settings page.
+        [Switch]$SettingsPage,
+        # Create SQL tables if not exists.
+        [Switch]$CreateTables
+    )
+    $Config = Get-PodeConfig
+    if (!$Config.ContainsKey('Components')) {
+        $Config['Components'] = @{}
+    }
+    if (!$Config['Components'].ContainsKey('SQLite')) {
+        $Config['Components']['SQLite'] = @{}
+    }
+    $Config['Components']['SQLite']['Enable'] = $true
+    if ($SettingsPage) {
+        $Config['Components']['SQLite']['SettingsPage'] = $true
+    }
+    Connect-Sql
+    if ($CreateTables) {
+        Invoke-SqlCreateTables
     }
 }
