@@ -26,7 +26,10 @@
 
             # Theme & Title.
             Use-PodeWebTemplates -Title Tools -Theme Auto -EndpointName 'Main'
-            Set-PwtRouteParams -EndpointName 'Main'
+
+            # Set EndpointName for routes.
+            # TODO: Cusses problems on Pode 2.1.0 https://github.com/Badgerati/Pode/issues/686
+            #Set-PwtRouteParams -EndpointName 'Main'
 
             # If using the tool "Drive" and not using any "Login" add a PodeSessionMiddleware.
             #Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
