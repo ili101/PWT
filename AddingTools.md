@@ -21,6 +21,7 @@
 5. Available extra functions:
    * `$RelativePath | Get-PwtRootedPath` if you need to add root to relative path (relative to the `Home.ps1` folder).
    * `Add-PodeStaticRoute @RouteParams` splat `$RouteParams` when adding a Route to set its `EndpointName` and `Authentication` if they where configured by the user.
+   * `Import-Module @ImportParams` splat `$ImportParams` when adding a Module to set `-Force` if "Debug" is on for easier reloading while developing. You can also copy `Server.Example.psd1` to `Server.psd1` for auto reloading on file change.
    * To use the SQLite, use `Connect-Sql` in the beginning of the runspace to establish a confection for the first time then run queries with `Invoke-Sql -QueryPath '\Path\File.sql' -QueryFormat Param`.
    * To generate a file and download it, you can use the `DownloadPath` config and the `/download` route, for example excel:
 ``` powershell

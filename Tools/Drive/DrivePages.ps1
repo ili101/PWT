@@ -1,6 +1,6 @@
 # TODO: Support subfolders.
 # Initialize.
-Import-Module -Name (Join-Path $PSScriptRoot 'Pwt.Drive.Helper.psm1')
+Import-Module -Name (Join-Path $PSScriptRoot 'Pwt.Drive.Helper.psm1') @ImportParams
 $DriveRootPath = $Config['Tools']['Drive']['DriveRootPath'] = $Config['Tools']['Drive']['DriveRootPath'] | Get-PwtRootedPath
 if (!(Test-Path -Path $DriveRootPath)) {
     $null = New-Item -ItemType Directory $DriveRootPath
@@ -41,9 +41,10 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
             Out-PodeWebText -Id 'DriveDeleteConfirmAlert' -Value $AlertMassage
         )
     }
-    $FolderItems = Get-ChildItem -Path $DriveWorkingPath | Select-Object -Property 'Name', 'LastWriteTime', 'Length'
+    $FolderItems = Get-ChildItem -Path $DriveWorkingPath
     foreach ($FolderItem in $FolderItems) {
         [ordered]@{
+            Icon          = $FolderItem | Get-Icon
             Name          = $FolderItem.Name
             LastWriteTime = $FolderItem.LastWriteTime.ToString()
             Length        = $FolderItem.Length | Format-FileSize

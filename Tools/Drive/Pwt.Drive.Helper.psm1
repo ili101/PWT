@@ -10,3 +10,26 @@ Function Format-FileSize {
     elseif ($Size -ge 0) { '{0:0.##} B' -f $Size }
     else { '' }
 }
+Function Get-Icon {
+    Param (
+        [Parameter(ValueFromPipeline)]
+        $InputObject
+    )
+    # https://feathericons.com/
+    $Icon = if ($InputObject -is [System.IO.DirectoryInfo]) { 'Folder' }
+    else {
+        switch ($InputObject.Extension) {
+            '.txt' { 'type' ; break }
+            '.ps1' { 'battery-charging' ; break }
+            Default {
+                if ($InputObject.Length -eq 0) {
+                    'file'
+                }
+                else {
+                    'file-text'
+                }
+            }
+        }
+    }
+    New-PodeWebIcon -Name $Icon
+}

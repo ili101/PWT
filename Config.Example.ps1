@@ -32,7 +32,8 @@
             #Set-PwtRouteParams -EndpointName 'Main'
 
             # If using the tool "Drive" and not using any "Login" add a PodeSessionMiddleware.
-            #Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
+            # Comment out if "Login" is activated to prevent conflict!
+            Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
         }
 
         # Login [ScriptBlock] (Optional uncomment).
@@ -93,7 +94,7 @@
         }
         Drive                      = @{
             # Enable this tool.
-            Enable        = $false
+            Enable        = $true
 
             DriveRootPath = '.\Storage\Drive'
         }
