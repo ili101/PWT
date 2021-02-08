@@ -6,15 +6,15 @@
         #Install-Module -Name Pode
         #Install-Module -Name Pode.Web
         #Install-Module -Name ImportExcel
-        ModulesPaths            = @('Pode', 'Pode.Web', 'ImportExcel')
+        ModulesPaths = @('Pode', 'Pode.Web', 'ImportExcel')
 
         # URL, Certificate, Theme & Title.
-        Endpoint                = {
+        Endpoint     = {
             # Http.
-            Add-PodeEndpoint -Address localhost -Protocol Http
+            Add-PodeEndpoint -Address localhost -Protocol Http -Name 'Main'
 
             # Https Self Signed.
-            #Add-PodeEndpoint -Address localhost -Port 443 -Protocol Https -SelfSigned
+            #Add-PodeEndpoint -Address localhost -Port 443 -Protocol Https -SelfSigned -Name 'Main'
 
             # Https Certificate.
             #$Certificate = Get-PfxCertificate -FilePath 'MyCert.pfx' -Password 'PfxPass'
@@ -24,51 +24,56 @@
             #Add-PodeEndpoint -Address 192.168.1.69 -Port 80 -Protocol Http -Name 'Redirect'
             #Add-PodeRoute -Method * -Path * -EndpointName 'Redirect' -ScriptBlock { Move-PodeResponseUrl -Protocol Https -Port 443 }
 
-            # Theme & Title
-            Use-PodeWebTemplates -Title Tools -Theme Auto
+            # Theme & Title.
+            Use-PodeWebTemplates -Title Tools -Theme Auto -EndpointName 'Main'
+            Set-PwtRouteParams -EndpointName 'Main'
+
+            # If using the tool "Drive" and not using any "Login" add a PodeSessionMiddleware.
+            #Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
         }
 
-        # Login [ScriptBlock] (Optional uncomment). If used LoginAuthenticationName [String] is required with the Authentication name.
+        # Login [ScriptBlock] (Optional uncomment).
         <# With AD:
-        Login                   = {
+        Login        = {
             Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
             New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT'
             Set-PodeWebLoginPage -Authentication 'MainAuth'
+            Set-PwtRouteParams -Authentication 'MainAuth'
         }
-        LoginAuthenticationName = 'MainAuth'
         #>
         <# Json file (Useful for testing):
-        Login                   = {
+        Login        = {
             Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
-            New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath (Join-Path (Get-PodeServerPath) '\Components\Json\Example.json')
+            New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath)
             Set-PodeWebLoginPage -Authentication 'MainAuth'
+            Set-PwtRouteParams -Authentication 'MainAuth'
         }
-        LoginAuthenticationName = 'MainAuth'
         #>
         <# Login from Json file with SQLite persistent session and user configuration page:
         # You can edit this to use AD + SQLite for example. If needed I can add an SQLite only example that stores the users in it.
-        Login                   = {
+        Login        = {
+            #Install-Module -Name SimplySql
             Import-Module -Name SimplySql
-            Import-Module -Name (Join-Path (Get-PodeServerPath) '\Components\SQLite\SqlHelper.psm1')
-            Connect-Database
-            Invoke-SqlCreateTables
-            Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage (New-SqlStoreObject)
-            New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath (Join-Path (Get-PodeServerPath) '\Components\Json\Example.json') -ScriptBlock (New-SqlPodeAuthScriptBlock)
+            Import-Module -Name ('\Components\SQLite\Pwt.SQLite.Helper.psm1' | Get-PwtRootedPath)
+            Initialize-SqlComponent -SettingsPage -CreateTables
+            Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage (New-SqlPodeStoreObject)
+            New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath) -ScriptBlock (New-SqlPodeAuthScriptBlock)
             Set-PodeWebLoginPage -Authentication 'MainAuth'
+            Set-PwtRouteParams -Authentication 'MainAuth'
         }
-        LoginAuthenticationName = 'MainAuth'
-        # Enable the SQLite user configuration page:
-        LoginUserConfiguration  = '.\Components\SQLite\SettingsPage.ps1'
         #>
 
-        # General.
-        Debug                   = $true
-        DownloadPath            = '.\Storage\Download'
+        # Force modules reload abd show errors on web.
+        Debug        = $true
+        # Main storage path.
+        StoragePath  = '.\Storage\'
+        # Path to temporary downland cache.
+        DownloadPath = '.\Storage\Download'
     }
     Tools  = @{
         ExchangeMessageTrackingLog = @{
             # Enable this tool
-            Enable = $true
+            Enable     = $true
 
             Connection = @{
                 # For demo test mode:
@@ -83,11 +88,11 @@
                 #Tools         = $true
             }
         }
-        Drive = @{
-            # Enable this tool
-            Enable = $false
+        Drive                      = @{
+            # Enable this tool.
+            Enable        = $false
 
-            RootPath = '.\Storage\Drive'
+            DriveRootPath = '.\Storage\Drive'
         }
     }
 }

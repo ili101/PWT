@@ -1,5 +1,4 @@
 $ErrorActionPreference = 'Stop'
-
 function Connect-Exchange {
     [CmdletBinding()]
     param (
@@ -67,6 +66,7 @@ function Disconnect-Exchange {
 
 function Search-MessageTracking {
     [CmdletBinding()]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidAssignmentToAutomaticVariable', '', Justification = 'Sender can be used if not an event registration')]
     param (
         [DateTime]$Start,
         [DateTime]$End,

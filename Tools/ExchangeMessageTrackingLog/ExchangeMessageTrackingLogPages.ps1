@@ -6,9 +6,8 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
             New-PodeWebTextbox -Name 'Sender' -Type Email
             New-PodeWebTextbox -Name 'Recipients' -Type Email
             New-PodeWebTextbox -Name 'MessageSubject'
-        ) -ArgumentList ($Config['Global']['Dummy'], $Config['Global']['Debug'], $Config['Tools']['ExchangeMessageTrackingLog']['Connection']) -ScriptBlock {
+        ) -ArgumentList ($Config['Global']['Debug'], $Config['Tools']['ExchangeMessageTrackingLog']['Connection']) -ScriptBlock {
             param (
-                $Dummy,
                 $Debug,
                 $Connection
             )
@@ -40,7 +39,7 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
                     }
                 }
 
-                Import-Module -Name (Join-Path $PSScriptRoot 'EXLogLib.psm1')
+                Import-Module -Name (Join-Path $PSScriptRoot 'Pwt.EMTL.Connector.psm1')
                 Connect-Exchange @Connection
                 $global:Results = Search-MessageTracking @InputData
                 Show-PodeWebToast -Message "Found $($Results.Length) results"
@@ -64,10 +63,9 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
             param (
                 $DownloadPath
             )
-            $PathRoot = $DownloadPath | Get-RootedPath
             $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd HH-mm-ss}.xlsx' -f (Get-Date))
             $WebEvent.Data | ForEach-Object { $_.Timestamp = Get-Date -Date $_.Timestamp }
-            Export-Excel -InputObject $WebEvent.Data -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $PathRoot $PathLeaf)
+            Export-Excel -InputObject $WebEvent.Data -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $DownloadPath $PathLeaf)
             Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
         }
         $ResultsTable | Add-PodeWebTableButton -Name 'Download Excel Full' -Icon 'file-text' -ArgumentList ($Config['Global']['DownloadPath']) -ScriptBlock {
@@ -77,9 +75,8 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
             # $WebEvent.Session.Id
             # $WebEvent.Auth.User.Username
             # $WebEvent.Auth.User.Email
-            $PathRoot = $DownloadPath | Get-RootedPath
             $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd HH-mm-ss}.xlsx' -f (Get-Date))
-            Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $PathRoot $PathLeaf)
+            Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $DownloadPath $PathLeaf)
             Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
         }
         $ResultsTable

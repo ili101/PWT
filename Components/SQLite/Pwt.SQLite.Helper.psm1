@@ -1,8 +1,9 @@
-function Connect-Database {
+function Connect-Sql {
     [CmdletBinding()]
     param ()
     if (!(Get-SqlConnection -ConnectionName SQLite -WarningAction SilentlyContinue)) {
-        Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path (Get-PodeServerPath).Replace('\\', '\\\\') '\Storage\Tool.db'))
+        $StoragePath = (Get-PodeConfig)['Global']['StoragePath']
+        Open-SQLiteConnection -ConnectionName SQLite -ConnectionString ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path $StoragePath.Replace('\\', '\\\\') '\Tool.db'))
     }
 }
 function Invoke-Sql {
@@ -64,7 +65,7 @@ function Invoke-Sql {
 
             # QueryPath
             if ($QueryPath) {
-                $PSBoundParameters['Query'] = Get-Content -Path ($QueryPath | Get-RootedPath)
+                $PSBoundParameters['Query'] = Get-Content -Path ($QueryPath | Get-PwtRootedPath)
             }
             $null = $PSBoundParameters.Remove('QueryPath')
 
@@ -140,23 +141,23 @@ function Invoke-SqlCreateTables {
         $null = Invoke-Sql -Update -QueryPath '\Components\SQLite\User\TableCreate.sql'
     }
 }
-function New-SqlStoreObject {
+function New-SqlPodeStoreObject {
     [CmdletBinding()]
     param ()
     [PSCustomObject]@{
         Get    = {
             param($sessionId)
-            Connect-Database
+            Connect-Sql
             return Invoke-Sql -Scalar -QueryPath '\Components\SQLite\Session\ItemGet.sql' -QueryFormat $sessionId | ConvertFrom-Json -AsHashtable
         }
         Set    = {
             param($sessionId, $data, $expiry)
-            Connect-Database
+            Connect-Sql
             $null = Invoke-Sql -Update -QueryPath '\Components\SQLite\Session\ItemSet.sql' -QueryFormat $sessionId, ($data | ConvertTo-Json -Depth 99), $expiry
         }
         Delete = {
             param($sessionId)
-            Connect-Database
+            Connect-Sql
             $null = Invoke-Sql -Update -QueryPath '\Components\SQLite\Session\ItemDelete.sql' -QueryFormat $sessionId
         }
     }
@@ -166,11 +167,35 @@ function New-SqlPodeAuthScriptBlock {
     param ()
     {
         param($User)
-        Connect-Database
+        Connect-Sql
         $Config = Invoke-Sql -QueryPath '\Components\SQLite\User\ItemGet.sql' -QueryFormat $User.Username
         if ($Config.Theme) {
             $User.Theme = $Config.Theme
         }
         return @{ User = $User }
+    }
+}
+function Initialize-SqlComponent {
+    [CmdletBinding()]
+    param (
+        # Enable users settings page.
+        [Switch]$SettingsPage,
+        # Create SQL tables if not exists.
+        [Switch]$CreateTables
+    )
+    $Config = Get-PodeConfig
+    if (!$Config.ContainsKey('Components')) {
+        $Config['Components'] = @{}
+    }
+    if (!$Config['Components'].ContainsKey('SQLite')) {
+        $Config['Components']['SQLite'] = @{}
+    }
+    $Config['Components']['SQLite']['Enable'] = $true
+    if ($SettingsPage) {
+        $Config['Components']['SQLite']['SettingsPage'] = $true
+    }
+    Connect-Sql
+    if ($CreateTables) {
+        Invoke-SqlCreateTables
     }
 }

@@ -10,29 +10,31 @@ else {
 }
 
 # Load Config.
-$ConfigPstPath = @('Config.ps1')
+$ConfigDynamicPath = @('Config.ps1')
 if ($env:PODE_ENVIRONMENT) {
-    $ConfigPstPath = , "Config.$($env:PODE_ENVIRONMENT).ps1" + $ConfigPstPath
+    $ConfigDynamicPath = , "Config.$($env:PODE_ENVIRONMENT).ps1" + $ConfigDynamicPath
 }
-$ConfigPstPath = $ConfigPstPath | ForEach-Object { Join-Path $ScriptRoot $_ } | Where-Object { $_ | Test-Path } | Select-Object -First 1
-$ConfigPst = & $ConfigPstPath
+$ConfigDynamicPath = $ConfigDynamicPath | ForEach-Object { Join-Path $ScriptRoot $_ } | Where-Object { $_ | Test-Path } | Select-Object -First 1
+$ConfigDynamic = & $ConfigDynamicPath
 
 # Import Modules.
-$ImportParams = if ($ConfigPst['Global']['Debug']) {
+$ImportParams = if ($ConfigDynamic['Global']['Debug']) {
     @{ Force = $true }
 }
 else {
     @{}
 }
-foreach ($ModulesPath in $ConfigPst['Global']['ModulesPaths']) {
+$ModulesPaths = @(Join-Path $ScriptRoot '\Components\Core\Pwt.Core.Helper.psm1') + $ConfigDynamic['Global']['ModulesPaths']
+foreach ($ModulesPath in $ModulesPaths) {
     Import-Module -Name $ModulesPath @ImportParams
 }
 
 Start-PodeServer {
-    Import-Module -Name (Join-Path (Get-PodeServerPath) '\Components\Core\Functions.psm1')
     $Config = Get-PodeConfig
-    $ConfigPst = & $ConfigPstPath
-    $ConfigPst.GetEnumerator() | ForEach-Object { $Config[$_.Name] = $_.Value }
+    $ConfigDynamic = & $ConfigDynamicPath
+    $ConfigDynamic.GetEnumerator() | ForEach-Object { $Config[$_.Name] = $_.Value }
+    'StoragePath', 'DownloadPath' | ForEach-Object { $Config['Global'][$_] = $Config['Global'][$_] | Get-PwtRootedPath }
+    'Tools', 'Components' | Where-Object { $null -eq $Config[$_] } | ForEach-Object { $Config[$_] = @{} }
 
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
@@ -43,28 +45,26 @@ Start-PodeServer {
     . $Config['Global']['Endpoint']
     if ($Config['Global']['Login']) {
         . $Config['Global']['Login']
-        if ([String]::IsNullOrWhiteSpace($Config['Global']['LoginAuthenticationName'])) {
-            throw 'When "Login" configured "LoginAuthenticationName" is required.'
+        if ([String]::IsNullOrWhiteSpace($Config['Global']['RouteParams']['Authentication'])) {
+            throw 'When "Login" configured "Set-PwtRouteParams -Authentication [String]" is required.'
         }
-        $Authentication = @{ Authentication = $Config['Global']['LoginAuthenticationName'] }
     }
-    else {
-        $Authentication = @{}
-    }
+    $RouteParams =$Config['Global']['RouteParams']
 
-    $DownloadPath = $Config['Global']['DownloadPath'] | Get-RootedPath
+    $DownloadPath = $Config['Global']['DownloadPath']
     if (!(Test-Path -Path $DownloadPath)) {
         $null = New-Item -ItemType Directory $DownloadPath
     }
-    Add-PodeStaticRoute -Path '/download' -Source $DownloadPath -DownloadOnly @Authentication
+    Add-PodeStaticRoute -Path '/download' -Source $DownloadPath -DownloadOnly @RouteParams
 
-    foreach ($Tool in (Get-PodeConfig).Tools.GetEnumerator()) {
+    foreach ($Tool in $Config.Tools.GetEnumerator()) {
         if ($Tool.Value.Enable) {
-            . ("\Tools\$($Tool.Name)\Pages.ps1" | Get-RootedPath)
+            . ("\Tools\$($Tool.Name)\$($Tool.Name)Pages.ps1" | Get-PwtRootedPath)
         }
     }
-
-    if ($Config['Global']['LoginUserConfiguration']) {
-        . ($Config['Global']['LoginUserConfiguration'] | Get-RootedPath)
+    foreach ($Component in $Config.Components.GetEnumerator()) {
+        if ($Component.Value.Enable) {
+            . ("\Components\$($Component.Name)\$($Component.Name)Pages.ps1" | Get-PwtRootedPath)
+        }
     }
 }
