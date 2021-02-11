@@ -51,7 +51,7 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
             Icon          = $FolderItem | Get-Icon
             Name          = $FolderItem.Name
             LastWriteTime = $FolderItem.LastWriteTime.ToString()
-            Length        = $FolderItem.Length | Format-FileSize
+            Length        = $FolderItem.PSObject.Properties.Item('Length').Value | Format-FileSize
             Download      = $DownloadButton
             Delete        = $DeleteButton
         }
