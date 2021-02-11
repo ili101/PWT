@@ -6,7 +6,7 @@ function Get-PwtRootedPath {
         $Root = (Get-PodeServerPath)
     )
     process {
-        if ($Path) {
+        if (![String]::IsNullOrWhiteSpace($Path)) {
             $RootedPath = if (Split-Path $Path -IsAbsolute) {
                 $Path
             }

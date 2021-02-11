@@ -33,3 +33,31 @@ Function Get-Icon {
     }
     New-PodeWebIcon -Name $Icon
 }
+function Initialize-DriveWorkingPath {
+    [CmdletBinding()]
+    param ()
+    if (!($DriveWorkingPath = $WebEvent.Session.Data.DriveWorkingPath)) {
+        $DriveWorkingPath = $WebEvent.Session.Data.DriveWorkingPath = (Get-PodeConfig)['Tools']['Drive']['DriveRootPath']
+    }
+    $DriveWorkingPath
+}
+function Test-DriveFileOrFolderPath {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipeline)]
+        [String]$FileOrFolderName,
+        [Switch]$Test,
+        [Switch]$Initialize
+    )
+    if ($Initialize) {
+        $null = Initialize-DriveWorkingPath
+    }
+    $FileOrFolderPath = $FileOrFolderName | Get-PwtRootedPath -Root $WebEvent.Session.Data.DriveWorkingPath
+    if (
+        $FileOrFolderPath -and
+        (!$Test -or (Test-Path -Path $FileOrFolderPath)) -and
+        ((Join-Path $FileOrFolderPath '').StartsWith((Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] '')))
+    ) {
+        $FileOrFolderPath
+    }
+}
