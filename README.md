@@ -1,7 +1,7 @@
 # PWT - PowerShell/Pode Web Tools (Beta)
 PowerShell website build with [Pode.Web](https://github.com/Badgerati/Pode.Web) with various tools.
 
-You can decide which tools to enable, customize them, add authentication and even add your own tools. 
+You can decide which tools to enable, customize them, add authentication and even add your own tools.
 
 ## Tools
 ### ExchangeMessageTrackingLogWeb
@@ -39,6 +39,3 @@ If you fund a bug, added functionality or anything else just fork and send pull 
 
 ##  Changelog
 [CHANGELOG.md](https://github.com/ili101/ExchangeMessageTrackingLogWeb/blob/master/CHANGELOG.md)
-
-## To do
-* Drive subfolders support.

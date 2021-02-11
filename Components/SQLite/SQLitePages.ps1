@@ -1,7 +1,6 @@
 if ($Config['Components']['SQLite']['SettingsPage']) {
     Add-PodeWebPage -Name 'Settings' -Icon settings -ScriptBlock {
         New-PodeWebForm -Name 'Account' -AsCard -Content @(
-            # Connect-Sql
             $ConfigTable = Invoke-Sql -QueryPath '\Components\SQLite\User\ItemGet.sql' -QueryFormat $WebEvent.Auth.User.Username -AsDataTable
             foreach ($Column in ($ConfigTable.Columns | Where-Object 'ColumnName' -NE 'Name')) {
                 # TODO: Add description, options, Type to SQL?
@@ -43,7 +42,6 @@ if ($Config['Components']['SQLite']['SettingsPage']) {
                     }
                 }
             }
-            # Connect-Sql
             $null = Invoke-Sql -Update -QueryPath '\Components\SQLite\User\ItemSet.sql' -QueryFormat $WebEvent.Auth.User.Username, ($ConfigNames -join ', '), ($ConfigValues -join ', ')
             $ConfigTable = Invoke-Sql -QueryPath '\Components\SQLite\User\ItemGet.sql' -QueryFormat $WebEvent.Auth.User.Username
             if ($ConfigTable.Theme -is [DBNull]) {

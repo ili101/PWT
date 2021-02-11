@@ -57,8 +57,8 @@
         # You can edit this to use AD + SQLite for example. If needed I can add an SQLite only example that stores the users in it.
         Login        = {
             #Install-Module -Name SimplySql
-            Import-Module -Name SimplySql
-            Import-Module -Name ('\Components\SQLite\Pwt.SQLite.Helper.psm1' | Get-PwtRootedPath)
+            Import-Module -Name SimplySql @ImportParams
+            Import-Module -Name ('\Components\SQLite\Pwt.SQLite.Helper.psm1' | Get-PwtRootedPath) @ImportParams
             Initialize-SqlComponent -SettingsPage -CreateTables
             Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (24 * 60 * 60) -Storage (New-SqlPodeStoreObject)
             New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath) -ScriptBlock (New-SqlPodeAuthScriptBlock)
