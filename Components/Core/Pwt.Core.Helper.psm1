@@ -2,16 +2,18 @@ function Get-PwtRootedPath {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline)]
-        $Path
+        $Path,
+        $Root = (Get-PodeServerPath)
     )
     process {
         if ($Path) {
-            if (Split-Path $Path -IsAbsolute) {
+            $RootedPath = if (Split-Path $Path -IsAbsolute) {
                 $Path
             }
             else {
-                Join-Path (Get-PodeServerPath) $Path
+                Join-Path $Root $Path
             }
+            [System.IO.Path]::GetFullPath($RootedPath)
         }
     }
 }

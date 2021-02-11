@@ -41,6 +41,14 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
             Out-PodeWebText -Id 'DriveDeleteConfirmAlert' -Value $AlertMassage
         )
     }
+    [ordered]@{
+        Icon          = New-PodeWebIcon -Name 'corner-up-left'
+        Name          = '..'
+        LastWriteTime = ''
+        Length        = ''
+        Download      = ''
+        Delete        = ''
+    }
     $FolderItems = Get-ChildItem -Path $DriveWorkingPath
     foreach ($FolderItem in $FolderItems) {
         [ordered]@{
@@ -58,12 +66,22 @@ $ExplorerMainTable | Add-PodeWebTableButton -Name 'Home' -Icon 'Home' -ScriptBlo
     Sync-PodeWebTable -Id 'DriveExplorer'
 }
 $ExplorerUploadForm = New-PodeWebForm -Name 'Form' -Content @(
-    New-PodeWebFileUpload -Name 'Upload'
+    New-PodeWebFileUpload -Name 'Upload File'
+    New-PodeWebTextbox -Name 'New Folder'
+    New-PodeWebTextbox -Name 'New File'
 ) -ScriptBlock {
     # $DriveWorkingPath = (Get-PodeConfig)['Tools']['Drive']['DriveRootPath']
     $DriveWorkingPath = $WebEvent.Session.Data.DriveWorkingPath
 
-    Save-PodeRequestFile -Key Upload -Path $DriveWorkingPath
+    if (![String]::IsNullOrWhiteSpace($WebEvent.Data.'Upload File')) {
+        Save-PodeRequestFile -Key 'Upload File' -Path $DriveWorkingPath
+    }
+    if (![String]::IsNullOrWhiteSpace($WebEvent.Data.'New Folder')) {
+        $null = New-Item -Path $DriveWorkingPath -Name $WebEvent.Data.'New Folder' -ItemType 'Directory'
+    }
+    if (![String]::IsNullOrWhiteSpace($WebEvent.Data.'New File')) {
+        $null = New-Item -Path $DriveWorkingPath -Name $WebEvent.Data.'New File' -ItemType 'File'
+    }
     Sync-PodeWebTable -Id 'DriveExplorer'
 }
 
@@ -80,14 +98,23 @@ Add-PodeWebPage -Name 'Drive' -Icon Activity -Layouts $ExplorerCard -ScriptBlock
         return
     }
 
-    $FileOrFolder = Get-Item -Path (Join-Path $DriveWorkingPath $FileOrFolderName)
-    if ($FileOrFolder -is [System.IO.DirectoryInfo]) {
-        $WebEvent.Session.Data.DriveWorkingPath = $FileOrFolder.FullName
+    $FileOrFolderPath = $FileOrFolderName | Get-PwtRootedPath -Root $DriveWorkingPath
+    if ((Test-Path -Path $FileOrFolderPath) -and
+        ((Join-Path $FileOrFolderPath '').StartsWith((Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] '')))
+    ) {
+        $FileOrFolder = Get-Item -Path $FileOrFolderPath
+        if ($FileOrFolder -is [System.IO.DirectoryInfo]) {
+            $WebEvent.Session.Data.DriveWorkingPath = $FileOrFolder.FullName
+            Move-PodeResponseUrl -Url ($Request.Url.ToString().Split('?')[0])
+        }
+        else {
+            $FileContent = $FileOrFolder | Get-Content | Out-String
+            New-PodeWebCard -Name "$($FileOrFolderName) Content" -Content @(
+                New-PodeWebCodeBlock -Value $FileContent -NoHighlight
+            )
+        }
     }
     else {
-        $FileContent = $FileOrFolder | Get-Content | Out-String
-        New-PodeWebCard -Name "$($FileOrFolderName) Content" -Content @(
-            New-PodeWebCodeBlock -Value $FileContent -NoHighlight
-        )
+        Move-PodeResponseUrl -Url ($Request.Url.ToString().Split('?')[0])
     }
 }
