@@ -66,7 +66,8 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
             $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd HH-mm-ss}.xlsx' -f (Get-Date))
             $WebEvent.Data | ForEach-Object { $_.Timestamp = Get-Date -Date $_.Timestamp }
             Export-Excel -InputObject $WebEvent.Data -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $DownloadPath $PathLeaf)
-            Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
+            $AttachmentParams = (Get-PodeConfig)['Global']['AttachmentParams']
+            Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/') @AttachmentParams
         }
         $ResultsTable | Add-PodeWebTableButton -Name 'Download Excel Full' -Icon 'file-text' -ArgumentList ($Config['Global']['DownloadPath']) -ScriptBlock {
             param (
@@ -77,7 +78,8 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
             # $WebEvent.Auth.User.Email
             $PathLeaf = Join-Path (New-Guid).Guid ('EMTL {0:yyyy-MM-dd HH-mm-ss}.xlsx' -f (Get-Date))
             Export-Excel -InputObject $global:Results -WorksheetName 'Log' -TableName 'Log' -AutoSize -Path (Join-Path $DownloadPath $PathLeaf)
-            Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/')
+            $AttachmentParams = (Get-PodeConfig)['Global']['AttachmentParams']
+            Set-PodeResponseAttachment -Path ('/download', ($PathLeaf.Replace('\', '/')) -join '/') @AttachmentParams
         }
         $ResultsTable
     )

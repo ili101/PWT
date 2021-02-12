@@ -27,8 +27,11 @@ function Set-PwtRouteParams {
     if (!$Config['Global'].ContainsKey('RouteParams')) {
         $Config['Global']['RouteParams'] = @{}
     }
+    if (!$Config['Global'].ContainsKey('AttachmentParams')) {
+        $Config['Global']['AttachmentParams'] = @{}
+    }
     if ($EndpointName) {
-        $Config['Global']['RouteParams']['EndpointName'] = $EndpointName
+        $Config['Global']['AttachmentParams']['EndpointName'] = $Config['Global']['RouteParams']['EndpointName'] = $EndpointName
     }
     if ($Authentication) {
         $Config['Global']['RouteParams']['Authentication'] = $Authentication

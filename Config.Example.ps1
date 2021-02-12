@@ -28,12 +28,16 @@
             Use-PodeWebTemplates -Title Tools -Theme Auto -EndpointName 'Main'
 
             # Set EndpointName for routes.
-            # TODO: Cusses problems on Pode 2.1.0 https://github.com/Badgerati/Pode/issues/686
-            #Set-PwtRouteParams -EndpointName 'Main'
+            # Cusses problems on Pode 2.1.0 https://github.com/Badgerati/Pode/issues/686
+            if ((Get-Module -Name Pode).Version -gt '2.1.0') {
+                Set-PwtRouteParams -EndpointName 'Main'
+            }
 
             # If using the tool "Drive" and not using any "Login" add a PodeSessionMiddleware.
-            # Comment out if "Login" is activated to prevent conflict!
-            Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
+            # Skipped if "Login" is activated to prevent conflict.
+            if (!$Config.Global.Login -and $Config.Tools.Drive.Enable) {
+                Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
+            }
         }
 
         # Login [ScriptBlock] (Optional uncomment).

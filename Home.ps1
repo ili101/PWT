@@ -58,6 +58,7 @@ Start-PodeServer {
             throw 'When "Login" configured "Set-PwtRouteParams -Authentication [String]" is required.'
         }
     }
+    Set-PwtRouteParams
     $RouteParams = $Config['Global']['RouteParams']
 
     # Set Download Route.

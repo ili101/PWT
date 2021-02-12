@@ -18,9 +18,10 @@ $ExplorerConfirmModal = New-PodeWebModal -Name 'Delete Item' -Id 'DriveDeleteCon
 $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -DataColumn Name -Filter -Sort -Click -Paginate -ScriptBlock {
     $DownloadButton = New-PodeWebButton -Name 'Download' -Icon 'Download' -IconOnly -ScriptBlock {
         if ($FileOrFolderPath = $WebEvent.Data.Value | Test-DriveFileOrFolderPath -Test -Initialize) {
-            $FileOrFolderPathRelative = $FileOrFolderPath.TrimStart((Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] ''))
+            $FileOrFolderPathRelative = $FileOrFolderPath -replace ('^' + [Regex]::Escape((Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] ''))), ''
             Show-PodeWebToast -Message "Download $($FileOrFolderPathRelative)"
-            Set-PodeResponseAttachment -Path ('/drive', $FileOrFolderPathRelative -join '/')
+            $AttachmentParams = (Get-PodeConfig)['Global']['AttachmentParams']
+            Set-PodeResponseAttachment -Path ('/drive', $FileOrFolderPathRelative -join '/') @AttachmentParams
         }
     }
     $DeleteButton = New-PodeWebButton -Name 'Delete' -Icon 'Delete' -IconOnly -ScriptBlock {
