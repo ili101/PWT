@@ -4,7 +4,6 @@ $DriveRootPath = $Config['Tools']['Drive']['DriveRootPath'] = $Config['Tools']['
 if (!(Test-Path -Path $DriveRootPath)) {
     $null = New-Item -ItemType Directory $DriveRootPath
 }
-Add-PodeStaticRoute -Path '/drive' -Source $DriveRootPath -DownloadOnly @RouteParams
 
 $ExplorerConfirmModal = New-PodeWebModal -Name 'Delete Item' -Id 'DriveDeleteConfirm' -AsForm -Content @(
     New-PodeWebAlert -Type Warning -Id 'DriveDeleteConfirmAlert' -Value '[Placeholder]'
@@ -18,10 +17,7 @@ $ExplorerConfirmModal = New-PodeWebModal -Name 'Delete Item' -Id 'DriveDeleteCon
 $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -DataColumn Name -Filter -Sort -Click -Paginate -ScriptBlock {
     $DownloadButton = New-PodeWebButton -Name 'Download' -Icon 'Download' -IconOnly -ScriptBlock {
         if ($FileOrFolderPath = $WebEvent.Data.Value | Test-DriveFileOrFolderPath -Test -Initialize) {
-            $FileOrFolderPathRelative = $FileOrFolderPath -replace ('^' + [Regex]::Escape((Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] ''))), ''
-            Show-PodeWebToast -Message "Download $($FileOrFolderPathRelative)"
-            $AttachmentParams = (Get-PodeConfig)['Global']['AttachmentParams']
-            Set-PodeResponseAttachment -Path ('/drive', $FileOrFolderPathRelative -join '/') @AttachmentParams
+            Set-PodeResponseAttachment -Path $FileOrFolderPath
         }
     }
     $DeleteButton = New-PodeWebButton -Name 'Delete' -Icon 'Delete' -IconOnly -ScriptBlock {
