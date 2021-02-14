@@ -2,17 +2,25 @@ function Get-PwtRootedPath {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline)]
-        $Path,
-        $Root = (Get-PodeServerPath)
+        [string]$Path,
+        [string]$Root = (Get-PodeServerPath)
     )
     process {
         if (![String]::IsNullOrWhiteSpace($Path)) {
-            $RootedPath = if (Split-Path $Path -IsAbsolute) {
+            # `Split-Path -IsAbsolute` don't work on UNC.
+            # `[System.IO.Path]::IsPathFullyQualified()` don't work on PSDrive.
+            # `[System.IO.Path]::IsPathRooted()` don't work on "\Foo".
+            $RootedPath = if ((Split-Path $Path -IsAbsolute) -or $Path.StartsWith('\\')) {
                 $Path
             }
             else {
                 Join-Path $Root $Path
             }
+            # Normalize path:
+            # `[System.IO.Path]::GetFullPath()` don't work on Drive.
+            # `$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath()` converts Drives to full path, Drives must exist, doesn't normalize UNC.
+            # `Resolve-Path` path must exist.
+            # `Convert-Path` path must exist, converts Drives to full path.
             [System.IO.Path]::GetFullPath($RootedPath)
         }
     }

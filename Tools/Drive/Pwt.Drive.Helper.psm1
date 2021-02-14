@@ -52,6 +52,9 @@ function Test-DriveFileOrFolderPath {
     if ($Initialize) {
         $null = Initialize-DriveWorkingPath
     }
+    if ($FileOrFolderName.StartsWith('Drive:')) {
+        $FileOrFolderName = $FileOrFolderName -replace '^Drive:\\?', (Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] '')
+    }
     $FileOrFolderPath = $FileOrFolderName | Get-PwtRootedPath -Root $WebEvent.Session.Data.DriveWorkingPath
     if (
         $FileOrFolderPath -and
