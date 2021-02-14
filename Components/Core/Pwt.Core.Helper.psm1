@@ -21,7 +21,14 @@ function Get-PwtRootedPath {
             # `$ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath()` converts Drives to full path, Drives must exist, doesn't normalize UNC.
             # `Resolve-Path` path must exist.
             # `Convert-Path` path must exist, converts Drives to full path.
-            [System.IO.Path]::GetFullPath($RootedPath)
+            if ($RootedPath -match '^(?!\\)+.{2,}:') {
+                # If path root is drive replace with "C:", normalize and replace back.
+                $RootedPath = $RootedPath.Replace($Matches[0], 'C:')
+                [System.IO.Path]::GetFullPath($RootedPath).Replace('C:', $Matches[0])
+            }
+            else {
+                [System.IO.Path]::GetFullPath($RootedPath)
+            }
         }
     }
 }

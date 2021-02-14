@@ -36,8 +36,11 @@ Function Get-Icon {
 function Initialize-DriveWorkingPath {
     [CmdletBinding()]
     param ()
+    if (!(Test-Path -Path 'Drive:')) {
+        New-PSDrive -Name Drive -PSProvider FileSystem -Root (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] -Scope Global
+    }
     if (!($DriveWorkingPath = $WebEvent.Session.Data.DriveWorkingPath)) {
-        $DriveWorkingPath = $WebEvent.Session.Data.DriveWorkingPath = (Get-PodeConfig)['Tools']['Drive']['DriveRootPath']
+        $DriveWorkingPath = $WebEvent.Session.Data.DriveWorkingPath = 'Drive:'
     }
     $DriveWorkingPath
 }
@@ -47,26 +50,17 @@ function Test-DriveFileOrFolderPath {
         [Parameter(ValueFromPipeline)]
         [String]$FileOrFolderName,
         [Switch]$Test,
-        [Switch]$Initialize,
-        [Switch]$Drive
+        [Switch]$Initialize
     )
     if ($Initialize) {
         $null = Initialize-DriveWorkingPath
-    }
-    if ($FileOrFolderName.StartsWith('Drive:')) {
-        $FileOrFolderName = $FileOrFolderName -replace '^Drive:\\?', (Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] '')
     }
     $FileOrFolderPath = $FileOrFolderName | Get-PwtRootedPath -Root $WebEvent.Session.Data.DriveWorkingPath
     if (
         $FileOrFolderPath -and
         (!$Test -or (Test-Path -Path $FileOrFolderPath)) -and
-        ((Join-Path $FileOrFolderPath '').StartsWith((Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] '')))
+        ((Join-Path $FileOrFolderPath '').StartsWith('Drive:\'))
     ) {
-        if ($Drive) {
-            $FileOrFolderPath -replace ('^{0}\\?' -f [regex]::Escape((Get-PodeConfig)['Tools']['Drive']['DriveRootPath'])), 'Drive:\'
-        }
-        else {
-            $FileOrFolderPath
-        }
+        $FileOrFolderPath
     }
 }

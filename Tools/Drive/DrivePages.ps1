@@ -39,7 +39,7 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
     }
     $LinkButton = New-PodeWebButton -Name 'Link' -Icon 'Link' -IconOnly -ScriptBlock {
         Show-PodeWebModal -Id 'DriveLink' -DataValue $WebEvent.Data.Value -Actions @(
-            if ($FileOrFolderPath = $WebEvent.Data.Value | Test-DriveFileOrFolderPath -Test -Initialize -Drive) {
+            if ($FileOrFolderPath = $WebEvent.Data.Value | Test-DriveFileOrFolderPath -Test -Initialize) {
                 Out-PodeWebText -Id 'DriveLinkText' -Value ($Request.UrlReferrer.ToString(), $FileOrFolderPath -join '?value=')
             }
         )
@@ -67,7 +67,7 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
     }
 }
 $ExplorerMainTable | Add-PodeWebTableButton -Name 'Home' -Icon 'Home' -ScriptBlock {
-    $WebEvent.Session.Data.DriveWorkingPath = (Get-PodeConfig)['Tools']['Drive']['DriveRootPath']
+    $WebEvent.Session.Data.DriveWorkingPath = 'Drive:'
     Sync-PodeWebTable -Id 'DriveExplorer'
 }
 $ExplorerUploadForm = New-PodeWebForm -Name 'Form' -Content @(
@@ -78,7 +78,7 @@ $ExplorerUploadForm = New-PodeWebForm -Name 'Form' -Content @(
     $null = Initialize-DriveWorkingPath
 
     if ($FilePath = $WebEvent.Data.'Upload File' | Test-DriveFileOrFolderPath) {
-        Save-PodeRequestFile -Key 'Upload File' -Path $FilePath
+        Save-PodeRequestFile -Key 'Upload File' -Path ($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath))
     }
     if ($FolderPath = $WebEvent.Data.'New Folder' | Test-DriveFileOrFolderPath) {
         $null = New-Item -Path $FolderPath -ItemType 'Directory'
@@ -103,11 +103,11 @@ Add-PodeWebPage -Name 'Drive' -Icon Activity -Layouts $ExplorerCard -ScriptBlock
     if ($FileOrFolderPath = $FileOrFolderName | Test-DriveFileOrFolderPath -Test) {
         $FileOrFolder = Get-Item -Path $FileOrFolderPath
         if ($FileOrFolder -is [System.IO.DirectoryInfo]) {
-            $WebEvent.Session.Data.DriveWorkingPath = $FileOrFolder.FullName
+            $WebEvent.Session.Data.DriveWorkingPath = $FileOrFolderPath
             Move-PodeResponseUrl -Url ($Request.Url.ToString().Split('?')[0])
         }
         else {
-            $FileContent = $FileOrFolder | Get-Content | Out-String
+            $FileContent = Get-Content -Path $FileOrFolderPath | Out-String
             New-PodeWebCard -Name "$($FileOrFolderName) Content" -Content @(
                 New-PodeWebCodeBlock -Value $FileContent -NoHighlight
             )
