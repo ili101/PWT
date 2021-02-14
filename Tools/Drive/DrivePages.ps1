@@ -14,6 +14,9 @@ $ExplorerConfirmModal = New-PodeWebModal -Name 'Delete Item' -Id 'DriveDeleteCon
         Sync-PodeWebTable -Id 'DriveExplorer'
     }
 }
+$ExplorerLinkModal = New-PodeWebModal -Name 'Direct Link' -Id 'DriveLink' -Content @(
+    New-PodeWebAlert -Type Info -Id 'DriveLinkText' -Value '[Placeholder]'
+)
 $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -DataColumn Name -Filter -Sort -Click -Paginate -ScriptBlock {
     $DownloadButton = New-PodeWebButton -Name 'Download' -Icon 'Download' -IconOnly -ScriptBlock {
         if ($FileOrFolderPath = $WebEvent.Data.Value | Test-DriveFileOrFolderPath -Test -Initialize) {
@@ -34,6 +37,13 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
             }
         )
     }
+    $LinkButton = New-PodeWebButton -Name 'Link' -Icon 'Link' -IconOnly -ScriptBlock {
+        Show-PodeWebModal -Id 'DriveLink' -DataValue $WebEvent.Data.Value -Actions @(
+            if ($FileOrFolderPath = $WebEvent.Data.Value | Test-DriveFileOrFolderPath -Test -Initialize -Drive) {
+                Out-PodeWebText -Id 'DriveLinkText' -Value ($Request.UrlReferrer.ToString(), $FileOrFolderPath -join '?value=')
+            }
+        )
+    }
     [ordered]@{
         Icon          = New-PodeWebIcon -Name 'corner-up-left'
         Name          = '..'
@@ -41,6 +51,7 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
         Length        = ''
         Download      = ''
         Delete        = ''
+        Link          = ''
     }
     $FolderItems = Get-ChildItem -Path (Initialize-DriveWorkingPath)
     foreach ($FolderItem in $FolderItems) {
@@ -51,6 +62,7 @@ $ExplorerMainTable = New-PodeWebTable -Name 'Explorer' -Id 'DriveExplorer' -Data
             Length        = $FolderItem.PSObject.Properties.Item('Length').Value | Format-FileSize
             Download      = $DownloadButton
             Delete        = $DeleteButton
+            Link          = $LinkButton
         }
     }
 }
@@ -78,7 +90,7 @@ $ExplorerUploadForm = New-PodeWebForm -Name 'Form' -Content @(
 }
 
 $ExplorerCard = New-PodeWebCard -Name 'Explorer' -Content @(
-    $ExplorerConfirmModal, $ExplorerUploadForm, $ExplorerMainTable
+    $ExplorerConfirmModal, $ExplorerLinkModal, $ExplorerUploadForm, $ExplorerMainTable
 )
 
 Add-PodeWebPage -Name 'Drive' -Icon Activity -Layouts $ExplorerCard -ScriptBlock {

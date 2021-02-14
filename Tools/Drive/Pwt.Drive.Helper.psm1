@@ -47,7 +47,8 @@ function Test-DriveFileOrFolderPath {
         [Parameter(ValueFromPipeline)]
         [String]$FileOrFolderName,
         [Switch]$Test,
-        [Switch]$Initialize
+        [Switch]$Initialize,
+        [Switch]$Drive
     )
     if ($Initialize) {
         $null = Initialize-DriveWorkingPath
@@ -61,6 +62,11 @@ function Test-DriveFileOrFolderPath {
         (!$Test -or (Test-Path -Path $FileOrFolderPath)) -and
         ((Join-Path $FileOrFolderPath '').StartsWith((Join-Path (Get-PodeConfig)['Tools']['Drive']['DriveRootPath'] '')))
     ) {
-        $FileOrFolderPath
+        if ($Drive) {
+            $FileOrFolderPath -replace ('^{0}\\?' -f [regex]::Escape((Get-PodeConfig)['Tools']['Drive']['DriveRootPath'])), 'Drive:\'
+        }
+        else {
+            $FileOrFolderPath
+        }
     }
 }
