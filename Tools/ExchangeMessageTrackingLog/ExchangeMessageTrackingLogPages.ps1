@@ -20,7 +20,14 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
                         $InputObject
                     )
                     process {
-                        $InputObject | Select-Object -Property @{N = 'Timestamp' ; E = { $_.Timestamp.ToString() } }, 'EventId', 'Source', 'Sender', 'Recipients', 'MessageSubject'
+                        $InputObject | Select-Object -Property @(
+                            @{ N = 'Timestamp' ; E = { $_.Timestamp.ToString() } },
+                            'EventId',
+                            'Source',
+                            'Sender',
+                            @{ N = 'Recipients' ; E = { $_.Recipients -join '; ' } },
+                            'MessageSubject'
+                        )
                     }
                 }
                 # Clear Parameters.
