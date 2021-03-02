@@ -5,8 +5,15 @@
         # Initialize.
         #Install-Module -Name Pode
         #Install-Module -Name Pode.Web
+        #Install-Module -Name Pode.Kestrel
         #Install-Module -Name ImportExcel
         ModulesPaths = @('Pode', 'Pode.Web', 'ImportExcel')
+
+        # Configure parameters for `Start-PodeServer`.
+        PodeServerParams = @{
+            # Use Pode.Kestrel, see https://github.com/Badgerati/Pode.Kestrel.
+            #ListenerType = 'Kestrel'
+        }
 
         # URL, Certificate, Theme & Title.
         Endpoint     = {

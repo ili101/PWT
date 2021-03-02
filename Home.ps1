@@ -29,7 +29,15 @@ foreach ($ModulesPath in $ModulesPaths) {
     Import-Module -Name $ModulesPath @ImportParams
 }
 
-Start-PodeServer {
+# Get `Start-PodeServer` params.
+$PodeServerParams = if ($ConfigDynamic.Global.PodeServerParams) {
+    $ConfigDynamic.Global.PodeServerParams
+}
+else {
+    @{}
+}
+
+Start-PodeServer @PodeServerParams -ScriptBlock {
     # Set Config.
     $Config = Get-PodeConfig
     $ConfigDynamic = & $ConfigDynamicPath

@@ -75,10 +75,10 @@ $ExplorerUploadForm = New-PodeWebForm -Name 'Form' -Content @(
     New-PodeWebTextbox -Name 'New Folder'
     New-PodeWebTextbox -Name 'New File'
 ) -ScriptBlock {
-    $null = Initialize-DriveWorkingPath
+    $DriveWorkingPath = Initialize-DriveWorkingPath
 
     if ($FilePath = $WebEvent.Data.'Upload File' | Test-DriveFileOrFolderPath) {
-        Save-PodeRequestFile -Key 'Upload File' -Path ($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($FilePath))
+        Save-PodeRequestFile -Key 'Upload File' -Path ($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($DriveWorkingPath))
     }
     if ($FolderPath = $WebEvent.Data.'New Folder' | Test-DriveFileOrFolderPath) {
         $null = New-Item -Path $FolderPath -ItemType 'Directory'
