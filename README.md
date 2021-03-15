@@ -19,7 +19,8 @@ Install-Module -Name Pode.Web
 Install-Module -Name ImportExcel
 ```
 4. Edit `Config.ps1` as needed (Default is Exchange demo mode and unsecured website).
-5. Run `Home.ps1` and browse to server URL.
+5. (Optional) Copy `Server.Example.psd1` to `Server.psd1` and edit as needed.
+6. Run `Home.ps1` and browse to server URL.
 
 ## Customization and more Tools
 This project can be used as a framework of other tools. You can write and add more pages for other functions you need.
