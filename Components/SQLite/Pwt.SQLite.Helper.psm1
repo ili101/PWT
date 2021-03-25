@@ -140,6 +140,9 @@ function Invoke-SqlCreateTables {
     if (!(Invoke-Sql -Scalar -QueryPath '\Components\SQLite\User\TableGet.sql')) {
         $null = Invoke-Sql -Update -QueryPath '\Components\SQLite\User\TableCreate.sql'
     }
+    if (!(Invoke-Sql -Scalar -QueryPath '\Components\SQLite\Group\TableGet.sql')) {
+        $null = Invoke-Sql -Update -QueryPath '\Components\SQLite\Group\TableCreate.sql'
+    }
 }
 function New-SqlPodeStoreObject {
     [CmdletBinding()]
@@ -180,6 +183,8 @@ function Initialize-SqlComponent {
     param (
         # Enable users settings page.
         [Switch]$SettingsPage,
+        # Enable admin settings page.
+        [Switch]$AdminPage,
         # Create SQL tables if not exists.
         [Switch]$CreateTables
     )
@@ -193,6 +198,9 @@ function Initialize-SqlComponent {
     $Config['Components']['SQLite']['Enable'] = $true
     if ($SettingsPage) {
         $Config['Components']['SQLite']['SettingsPage'] = $true
+    }
+    if ($AdminPage) {
+        $Config['Components']['SQLite']['AdminPage'] = $true
     }
     Connect-Sql
     if ($CreateTables) {
