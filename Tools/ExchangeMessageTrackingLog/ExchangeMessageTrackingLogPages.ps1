@@ -50,7 +50,7 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
                 Connect-Exchange @Connection
                 $global:Results = Search-MessageTracking @InputData
                 Show-PodeWebToast -Message "Found $($Results.Length) results"
-                $Results | Format-Exchange | Out-PodeWebTable -Id 'TableResults'
+                $Results | Format-Exchange | Out-PodeWebTable -Id 'EmtlTableResults'
             }
             catch {
                 if ($Debug) {
@@ -65,7 +65,7 @@ Add-PodeWebPage -Name 'Message Tracking' -Icon Activity -Layouts @(
             }
         }
         New-PodeWebLink -Source 'https://docs.microsoft.com/en-us/exchange/mail-flow/transport-logs/message-tracking?view=exchserver-2019#event-types-in-the-message-tracking-log' -Value 'Event types in the message tracking log' -NewTab
-        $ResultsTable = New-PodeWebTable -Name 'Results' -Id 'TableResults' -Filter
+        $ResultsTable = New-PodeWebTable -Name 'Results' -Id 'EmtlTableResults' -Filter
         $ResultsTable | Add-PodeWebTableButton -Name 'Download Excel' -Icon 'Bar-Chart' -ArgumentList ($Config['Global']['DownloadPath']) -ScriptBlock {
             param (
                 $DownloadPath
