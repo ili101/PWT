@@ -8,8 +8,8 @@
             "name": "PowerShell: Home File",
             "type": "PowerShell",
             "request": "launch",
-            "script": ".\\Home.ps1",
-            "cwd": ".\\Home.ps1"
+            "script": ".\\server.ps1",
+            "cwd": ".\\server.ps1"
         },
         {
             "name": "PowerShell: Launch Current File",

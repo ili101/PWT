@@ -1,9 +1,10 @@
 Logs/
 Storage/
 
-Config.ps1
-Config.*.ps1
-!Config.Example.ps1
-Server.psd1
-Server.*.psd1
-!Server.Example.psd1
+config.ps1
+config.*.ps1
+!config.Example.ps1
+server.psd1
+server.*.psd1
+!server.Example.psd1
+ps_modules/
