@@ -19,6 +19,31 @@
         Write-Debug "PID: $PID" -Debug
     }
 
+    $PackagePath = Join-Path $ScriptRoot '\Components\*\package.json'
+    if (Test-Path $PackagePath) {
+        $Package = Resolve-Path -Path $PackagePath | ForEach-Object { $_ | Get-Content | ConvertFrom-Json -AsHashtable }
+    }
+    else {
+        throw 'package.json file not found'
+    }
+
+    $Modules = [System.Collections.Generic.HashSet[String]]@($Package.modules.Keys)
+    $Modules.ExceptWith([String[]]@('Pode', 'Kestrel'))
+
+    # Import Modules.
+    foreach ($Module in $Modules) {
+        Import-PodeModule @Module
+    }
+
+    $Components = @{}
+    $Package | ForEach-Object { $Components[$_.name] = $_.components ?? @() }
+    Get-TopologicalSort $Components
+    foreach ($Component in $Config.Components.GetEnumerator()) {
+        if ($Component.Value.Enable) {
+            . ("\Components\$($Component.Name)\$($Component.Name)Pages.ps1" | Get-PwtRootedPath)
+        }
+    }
+
     # Load Endpoint and Login.
     . $Config['Global']['Endpoint']
     if ($Config['Global']['Login']) {
@@ -41,11 +66,6 @@
     foreach ($Tool in $Config.Tools.GetEnumerator()) {
         if ($Tool.Value.Enable) {
             . ("\Tools\$($Tool.Name)\$($Tool.Name)Pages.ps1" | Get-PwtRootedPath)
-        }
-    }
-    foreach ($Component in $Config.Components.GetEnumerator()) {
-        if ($Component.Value.Enable) {
-            . ("\Components\$($Component.Name)\$($Component.Name)Pages.ps1" | Get-PwtRootedPath)
         }
     }
 }

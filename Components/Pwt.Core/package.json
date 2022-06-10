@@ -1,0 +1,18 @@
+{
+  "author": "ili",
+  "scripts": {
+    "install": "",
+    "build": "psake",
+    "test": "invoke-pester ./tests/*.ps1",
+    "start": "./server.ps1"
+  },
+  "description": "PowerShell/Pode Web Tools",
+  "license": "MIT",
+  "main": "./server.ps1",
+  "name": "Pwt",
+  "version": "0.1.0",
+  "modules": {
+    "Pode": "latest",
+    "Pode.Web": "latest"
+  }
+}
