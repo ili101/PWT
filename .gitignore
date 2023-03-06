@@ -1,10 +1,14 @@
 Logs/
 Storage/
 
-config.ps1
-config.*.ps1
-!config.Example.ps1
+Config/*
+!Config/*.Example.ps1
 server.psd1
 server.*.psd1
 !server.Example.psd1
-ps_modules/
+server*.ps1
+
+ps_modules/*
+!ps_modules/Pwt/
+!ps_modules/Pwt.Tool.Debug/
+!ps_modules/Pwt.Component.Sqlite/

@@ -1,0 +1,3 @@
+CREATE TABLE "Group" (
+    "GroupName"	TEXT NOT NULL UNIQUE PRIMARY KEY
+)

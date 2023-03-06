@@ -13,4 +13,9 @@
             BodySize = 1.99GB
         }
     }
+    Web    = @{
+        ErrorPages = @{
+            ShowExceptions = $true
+        }
+    }
 }

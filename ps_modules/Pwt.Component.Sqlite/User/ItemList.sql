@@ -1,4 +1,4 @@
 SELECT
-    "Name"
+    "Username"
 FROM
     "User"

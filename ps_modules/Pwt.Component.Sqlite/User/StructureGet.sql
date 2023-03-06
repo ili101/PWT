@@ -2,5 +2,4 @@ SELECT
     *
 FROM
     "User"
-WHERE
-    "Name" = '{0}'
+LIMIT 0

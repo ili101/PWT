@@ -1,45 +1,34 @@
-function Start-Pwt {
+function Invoke-PwtConfig {
+    [CmdletBinding()]
     param (
-        [string]$ScriptRoot
+        [switch]$PassThru,
+        [string]$ScriptRoot = (Get-PodeServerPath),
+        [string]$Module
     )
     # Load Config.
-    $ConfigDynamicPath = @('config.ps1')
+    $ConfigDynamicPath = @("$Module.ps1")
     if ($env:PODE_ENVIRONMENT) {
-        $ConfigDynamicPath = , "config.$($env:PODE_ENVIRONMENT).ps1" + $ConfigDynamicPath
+        $ConfigDynamicPath = , "$Module.$($env:PODE_ENVIRONMENT).ps1" + $ConfigDynamicPath
     }
-    $ConfigDynamicPath = $ConfigDynamicPath | ForEach-Object { Join-Path $ScriptRoot $_ } | Where-Object { $_ | Test-Path } | Select-Object -First 1
-    $ConfigDynamic = & $ConfigDynamicPath
-
-    # $PackagePath = Join-Path $ScriptRoot '\Components\Core\package.json'
-    # if (Test-Path $PackagePath) {
-    #     $Package = (Get-Content $PackagePath | ConvertFrom-Json)
-    # }
-    # else {
-    #     throw 'package.json file not found'
-    # }
-
-    # $Modules = $Package.modules | Where-Object { $_ -ne 'Pode' }
-    Import-PodeModule -Name Pode
-
-    # # Import Modules.
-    # foreach ($Module in $Modules) {
-    #     Import-PodeModule @Module
-    # }
-
-    # Get `Start-PodeServer` params.
-    $PodeServerParams = if ($ConfigDynamic.Global.PodeServerParams) {
-        $ConfigDynamic.Global.PodeServerParams
+    $ConfigDynamicPath = $ConfigDynamicPath | ForEach-Object { Join-Path $ScriptRoot 'Config' $_ } | Where-Object { $_ | Test-Path } | Select-Object -First 1
+    if ($ConfigDynamicPath) {
+        $script:ConfigDynamic = & $ConfigDynamicPath
+        if ($PassThru) {
+            return $script:ConfigDynamic
+        }
     }
     else {
         @{}
     }
-    if ($ConfigDynamic.Global.PodeServerParams.ListenerType -eq 'Kestrel') {
-        Import-PodeModule -Name Pode.Kestrel
-    }
-
-    Start-PodeServer @PodeServerParams -RootPath $ScriptRoot -FilePath (Join-Path $ScriptRoot '\Components\Pwt\Home.ps1')
 }
-
+function Get-PwtConfig {
+    [CmdletBinding()]
+    param (
+        [string]$Module
+    )
+    $Config = Get-PodeConfig
+    return $Config['Configs'][$Module]
+}
 
 function Get-PwtRootedPath {
     [CmdletBinding()]

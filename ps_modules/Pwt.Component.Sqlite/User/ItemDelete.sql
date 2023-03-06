@@ -1,4 +1,4 @@
 DELETE FROM
     "User"
 WHERE
-    "Name" = '{0}'
+    "Username" = '{0}'

@@ -1,4 +1,4 @@
 REPLACE INTO
-    "User" ("Name", {1})
+    "Group" ("GroupName", {1})
 VALUES
 ('{0}', {2})
