@@ -12,3 +12,4 @@ ps_modules/*
 !ps_modules/Pwt/
 !ps_modules/Pwt.Tool.Debug/
 !ps_modules/Pwt.Component.Sqlite/
+!ps_modules/Pwt.Component.Ef/

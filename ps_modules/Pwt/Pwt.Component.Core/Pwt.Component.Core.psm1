@@ -169,3 +169,17 @@ function Get-TopologicalSort {
 
     return $topologicallySortedElements
 }
+
+function Get-ErrorMessage {
+    param (
+        [Parameter(Mandatory, ValueFromPipeline)]
+        $ErrorRecord
+    )
+
+    $Exception = $ErrorRecord.Exception
+    $Messages = while ($Exception.Message) {
+        $Exception.Message
+        $Exception = $Exception.InnerException
+    }
+    $Messages
+}

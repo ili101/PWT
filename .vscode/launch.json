@@ -12,6 +12,13 @@
             "cwd": ".\\server.ps1"
         },
         {
+            "name": "PowerShell: Home File Environment",
+            "type": "PowerShell",
+            "request": "launch",
+            "script": ". \".\\server.$env:PODE_ENVIRONMENT.ps1\"",
+            "cwd": ". \".\\server.$env:PODE_ENVIRONMENT.ps1\""
+        },
+        {
             "name": "PowerShell: Launch Current File",
             "type": "PowerShell",
             "request": "launch",

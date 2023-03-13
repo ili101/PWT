@@ -9,25 +9,25 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    RootModule           = 'Pwt.Component.Core.psm1'
+    RootModule        = 'Pwt.Component.Ef.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.0.1'
+    ModuleVersion     = '0.0.1'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
 
     # ID used to uniquely identify this module
-    GUID                 = 'a0784e99-1442-4adf-babb-71a1f8260ef2'
+    GUID              = 'a0784e99-1442-4adf-babb-71a1f8260ef7'
 
     # Author of this module
-    Author               = 'ili'
+    Author            = 'ili'
 
     # Company or vendor of this module
-    CompanyName          = 'Unknown'
+    CompanyName       = 'Unknown'
 
     # Copyright statement for this module
-    Copyright            = '(c) ili. All rights reserved.'
+    Copyright         = '(c) ili. All rights reserved.'
 
     # Description of the functionality provided by this module
     # Description = ''
@@ -66,27 +66,30 @@
     # FormatsToProcess = @()
 
     # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-    NestedModules = @()
+    NestedModules     = @()
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-    FunctionsToExport    = @(
-        'Invoke-PwtConfig',
-        'Get-PwtConfig',
-        'Get-PwtRootedPath',
-        'Set-PwtRouteParams',
-        'Get-ClonedObject',
-        'Get-TopologicalSort',
-        'Get-ErrorMessage'
+    FunctionsToExport = @(
+        'Initialize-PwtEf',
+        'Get-PwtPagesEf',
+        # 'Invoke-Sql',
+        'Connect-PwtEfSql',
+        # 'New-SqlPodeStoreObject',
+        'New-PwtEfPodeAuthScriptBlock',
+        'Add-PodeAuthEf',
+        'Test-HashPassword',
+        'Get-PwtEf_Snippet',
+        'Convert-EfUserToPodeUser'
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-    CmdletsToExport      = @()
+    CmdletsToExport   = @()
 
     # Variables to export from this module
-    VariablesToExport    = @()
+    VariablesToExport = @()
 
     # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
-    AliasesToExport      = @()
+    AliasesToExport   = @()
 
     # DSC resources to export from this module
     # DscResourcesToExport = @()
@@ -98,12 +101,12 @@
     # FileList = @()
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
-    PrivateData          = @{
+    PrivateData       = @{
 
         PSData = @{
 
             # Tags applied to this module. These help with module discovery in online galleries.
-            Tags = 'Pwt', 'PwtComponent'
+            Tags = 'Pwt', 'Component'
 
             # A URL to the license for this module.
             # LicenseUri = ''
