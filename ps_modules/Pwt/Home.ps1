@@ -1,17 +1,14 @@
 {
-    $PwtCorePath = (Get-Command 'Start-Pwt').Module.NestedModules.ModuleBase
+    $PwtCorePath = (Get-Module 'Pwt.Component.Core').ModuleBase
     Import-PodeModule -Name $PwtCorePath
 
     # Set Config.
-    $Config = Get-PodeConfig
-    $ConfigDynamic = Invoke-PwtConfig -PassThru -Module "Pwt"
-    # $ConfigDynamic = & (Get-Command 'Start-Pwt').Module { $script:ConfigDynamic }
-    # $PwtCorePath = & (Get-Command 'Start-Pwt').Module { $script:PwtCorePath }
-    # $ConfigDynamic = & $ConfigDynamicPath
-    $ConfigDynamic.GetEnumerator() | ForEach-Object { $Config[$_.Name] = $_.Value }
-    'StoragePath', 'DownloadPath' | ForEach-Object { $Config['Global'][$_] = $Config['Global'][$_] | Get-PwtRootedPath }
-    'Tools', 'Components' | Where-Object { $null -eq $Config[$_] } | ForEach-Object { $Config[$_] = @{} }
-    $ImportParams = $Config['Global']['ImportParams'] = if ($Config['Global']['Debug']) {
+    $ConfigPode = Get-PodeConfig
+    $ConfigPode['Configs'] = @{}
+    $ConfigPode['Configs']['Pwt'] = $ConfigPwt = Invoke-PwtConfig -PassThru -Module 'Pwt'
+    'StoragePath', 'DownloadPath' | ForEach-Object { $ConfigPwt[$_] = $ConfigPwt[$_] | Get-PwtRootedPath }
+    'Tools', 'Components' | Where-Object { $null -eq $ConfigPwt[$_] } | ForEach-Object { $ConfigPwt[$_] = @{} }
+    $ImportParams = $ConfigPwt['ImportParams'] = if ($ConfigPwt['Debug']) {
         @{ Force = $true }
     }
     else {
@@ -21,7 +18,7 @@
     # Logging.
     New-PodeLoggingMethod -File -Name 'Errors' | Enable-PodeErrorLogging
     New-PodeLoggingMethod -File -Name 'Requests' | Enable-PodeRequestLogging
-    if ($Config['Global']['Debug']) {
+    if ($ConfigPwt['Debug']) {
         Write-Debug "PID: $PID" -Debug
     }
 
@@ -44,55 +41,54 @@
     # $Components = @{}
     # $Package | ForEach-Object { $Components[$_.name] = $_.components ?? @() }
     # Get-TopologicalSort $Components
-    # foreach ($Component in $Config.Components.GetEnumerator()) {
+    # foreach ($Component in $ConfigPwt.Components.GetEnumerator()) {
     #     if ($Component.Value.Enable) {
     #         . ("\Components\$($Component.Name)\$($Component.Name)Pages.ps1" | Get-PwtRootedPath)
     #     }
     # }
 
-     $Config['Configs'] = @{}
-    foreach ($Component in $Config.Components) {
+    foreach ($Component in $ConfigPwt.Components) {
         Import-PodeModule -Name "Pwt.Component.$Component"
-        $Config['Configs']["Pwt.Component.$Component"] = Invoke-PwtConfig -PassThru -Module "Pwt.Component.$Component"
+        $ConfigPode['Configs']["Pwt.Component.$Component"] = Invoke-PwtConfig -PassThru -Module "Pwt.Component.$Component"
     }
     # Load Tools and Components.
-    foreach ($Tool in $Config.Tools) {
+    foreach ($Tool in $ConfigPwt.Tools) {
         Import-PodeModule -Name "Pwt.Tool.$Tool"
-        $Config['Configs']["Pwt.Tool.$Component"] = Invoke-PwtConfig -PassThru -Module "Pwt.Tool.$Component"
+        $ConfigPode['Configs']["Pwt.Tool.$Tool"] = Invoke-PwtConfig -PassThru -Module "Pwt.Tool.$Tool"
     }
-    foreach ($Module in $Config.Components + $Config.Tools) {
+    foreach ($Module in $ConfigPwt.Components + $ConfigPwt.Tools) {
         if (Get-Command "Initialize-Pwt$Module" -ErrorAction SilentlyContinue) {
             . (. "Initialize-Pwt$Module")
         }
     }
 
     # Load Endpoint and Login.
-    . $Config['Global']['Endpoint']
-    if ($Config['Global']['Login']) {
-        . $Config['Global']['Login']
-        if ([String]::IsNullOrWhiteSpace($Config['Global']['RouteParams']['Authentication'])) {
+    . $ConfigPwt['Endpoint']
+    if ($ConfigPwt['Login']) {
+        . $ConfigPwt['Login']
+        if ([String]::IsNullOrWhiteSpace($ConfigPwt['RouteParams']['Authentication'])) {
             throw 'When "Login" configured "Set-PwtRouteParams -Authentication [String]" is required.'
         }
     }
     Set-PwtRouteParams
-    $RouteParams = $Config['Global']['RouteParams']
+    $RouteParams = $ConfigPwt['RouteParams']
 
     # Set Download Route.
-    $DownloadPath = $Config['Global']['DownloadPath']
+    $DownloadPath = $ConfigPwt['DownloadPath']
     if (!(Test-Path -Path $DownloadPath)) {
         $null = New-Item -ItemType Directory $DownloadPath
     }
     Add-PodeStaticRoute -Path '/download' -Source $DownloadPath -DownloadOnly @RouteParams
 
     # # Load Tools and Components.
-    # foreach ($Tool in $Config.Tools.GetEnumerator()) {
+    # foreach ($Tool in $ConfigPwt.Tools.GetEnumerator()) {
     #     if ($Tool.Value.Enable) {
     #         . ("\Tools\$($Tool.Name)\$($Tool.Name)Pages.ps1" | Get-PwtRootedPath)
     #     }
     # }
 
     # Load Tools and Components.
-    foreach ($Module in $Config.Components + $Config.Tools) {
+    foreach ($Module in $ConfigPwt.Components + $ConfigPwt.Tools) {
         . (. "Get-PwtPages$Module")
     }
 }

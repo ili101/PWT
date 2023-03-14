@@ -22,24 +22,24 @@ function Start-Pwt {
     # }
 
     # Import Modules.
-    $ImportParams = if ($ConfigDynamic['Global']['Debug']) {
+    $ImportParams = if ($ConfigDynamic['Debug']) {
         @{ Force = $true }
     }
     else {
         @{}
     }
-    # $ModulesPaths = @(Join-Path $ScriptRoot '\Components\Core\Pwt.Core.Helper.psm1') + $ConfigDynamic['Global']['ModulesPaths']
-    $ModulesPaths = $ConfigDynamic['Global']['ModulesPaths']
+    # $ModulesPaths = @(Join-Path $ScriptRoot '\Components\Core\Pwt.Core.Helper.psm1') + $ConfigDynamic['ModulesPaths']
+    $ModulesPaths = $ConfigDynamic['ModulesPaths']
     Import-Module -Name $ModulesPaths @ImportParams -Global
 
     # Get `Start-PodeServer` params.
-    $PodeServerParams = if ($ConfigDynamic.Global.PodeServerParams) {
-        $ConfigDynamic.Global.PodeServerParams
+    $PodeServerParams = if ($ConfigDynamic.PodeServerParams) {
+        $ConfigDynamic.PodeServerParams
     }
     else {
         @{}
     }
-    if ($ConfigDynamic.Global.PodeServerParams.ListenerType -eq 'Kestrel') {
+    if ($ConfigDynamic.PodeServerParams.ListenerType -eq 'Kestrel') {
         Import-Module -Name Pode.Kestrel
     }
 

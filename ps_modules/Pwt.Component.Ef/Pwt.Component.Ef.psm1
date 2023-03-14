@@ -19,7 +19,7 @@ function Initialize-PwtEf {
             (New-EFPoshEntityDefinition -Type 'Pwt.Ef.Group' -PrimaryKey 'GroupName' -TableName 'Group')
         )
 
-        $StoragePath = (Get-PodeConfig)['Global']['StoragePath']
+        $StoragePath = (Get-PwtConfig -Module 'Pwt')['StoragePath']
         $ConnectionString = ('Data Source={0}' -f (Join-Path $StoragePath.Replace('\\', '\\\\') '\Ef.db'))
 
         $Config['EfParams'] = @{

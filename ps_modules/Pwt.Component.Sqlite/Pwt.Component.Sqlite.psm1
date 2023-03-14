@@ -23,7 +23,7 @@ function Initialize-PwtSqlite {
         # if ($AdminPage) {
         #     $Config['Components']['SQLite']['AdminPage'] = $true
         # }
-        $StoragePath = (Get-PodeConfig)['Global']['StoragePath']
+        $StoragePath = (Get-PwtConfig -Module 'Pwt')['StoragePath']
         $Config['ConnectionString'] = ('Data Source={0};ForeignKeys=True;recursive_triggers=True' -f (Join-Path $StoragePath.Replace('\\', '\\\\') '\Tool.db'))
         Connect-Sql -ScriptBlock {
             if ($Config['CreateTables']) {
