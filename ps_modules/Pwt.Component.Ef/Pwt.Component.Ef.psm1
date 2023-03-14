@@ -523,6 +523,38 @@ function New-PwtEfPodeAuthScriptBlock {
         }
     }
 }
+function Get-PodeAuthEfMethod {
+    [CmdletBinding()]
+    param()
+    {
+        param(
+            # [Parameter(Mandatory)]
+            [string]$Username,
+            # [Parameter(Mandatory)]
+            [string]$Password
+        )
+        . Connect-PwtEfSql -ScriptBlock {
+            $User = Search-EFPosh -Entity User -Expression { $_.Username -eq $Username } -Include 'Groups'
+        }
+        if ($User.Count -ne 1 -or $User.AuthenticationType -ne 'Sqlite' -or !(Test-HashPassword -HashedPassword $User.Password -Password $Password)) {
+            return @{ Message = 'Invalid username or password' }
+        }
+
+        $UserPode = $User | Convert-EfUserToPodeUser
+        return @{ User = $UserPode }
+    }
+}
+
+function Get-PodeAuthEf {
+    [CmdletBinding()]
+    param ()
+    @{
+        ScriptBlock = (Get-PodeAuthEfMethod)
+        Arguments   = @{}
+    }
+}
+
+
 function Add-PodeAuthEf {
     [CmdletBinding()]
     param(
@@ -575,23 +607,7 @@ function Add-PodeAuthEf {
                 $PSBoundParameters['OutBuffer'] = 1
             }
 
-            $PSBoundParameters['ScriptBlock'] = {
-                param(
-                    # [Parameter(Mandatory)]
-                    [string]$Username,
-                    # [Parameter(Mandatory)]
-                    [string]$Password
-                )
-                . Connect-PwtEfSql -ScriptBlock {
-                    $User = Search-EFPosh -Entity User -Expression { $_.Username -eq $Username } -Include 'Groups'
-                    if ($User.Count -ne 1 -or !(Test-HashPassword -HashedPassword $User.Password -Password $Password)) {
-                        return @{ Message = 'Invalid username or password' }
-                    }
-                    $UserPode = $User | Convert-EfUserToPodeUser
-                }
-
-                return @{ User = $UserPode }
-            }
+            $PSBoundParameters['ScriptBlock'] = Get-PodeAuthEfMethod
 
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Add-PodeAuth', [System.Management.Automation.CommandTypes]::Function)
             $scriptCmd = { & $wrappedCmd @PSBoundParameters }

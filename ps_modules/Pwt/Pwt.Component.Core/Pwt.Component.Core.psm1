@@ -183,3 +183,139 @@ function Get-ErrorMessage {
     }
     $Messages
 }
+
+function Get-PodeAuthWindowsAd {
+    [CmdletBinding(DefaultParameterSetName = 'Groups')]
+    param (
+        # [Parameter(Mandatory = $true)]
+        # [string]
+        # $Name,
+
+        # [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        # [hashtable]
+        # $Scheme,
+
+        [Parameter()]
+        [Alias('Server')]
+        [string]
+        $Fqdn,
+
+        [Parameter()]
+        [string]
+        $Domain,
+
+        [Parameter()]
+        [string]
+        $SearchBase,
+
+        [Parameter(ParameterSetName = 'Groups')]
+        [string[]]
+        $Groups,
+
+        [Parameter()]
+        [string[]]
+        $Users,
+
+        # [Parameter()]
+        # [string]
+        # $FailureUrl,
+
+        # [Parameter()]
+        # [string]
+        # $FailureMessage,
+
+        # [Parameter()]
+        # [string]
+        # $SuccessUrl,
+
+        [Parameter()]
+        [scriptblock]
+        $ScriptBlock,
+
+        # [switch]
+        # $Sessionless,
+
+        [Parameter(ParameterSetName = 'NoGroups')]
+        [switch]
+        $NoGroups,
+
+        [Parameter(ParameterSetName = 'Groups')]
+        [switch]
+        $DirectGroups,
+
+        [switch]
+        $OpenLDAP,
+
+        [switch]
+        $ADModule,
+
+        # [switch]
+        # $SuccessUseOrigin,
+
+        [switch]
+        $KeepCredential
+    )
+    . (Get-Module Pode) {
+        $args[0].GetEnumerator() | ForEach-Object {
+            Set-Variable -Name $_.Key -Value $_.Value
+        }
+
+        # ensure the name doesn't already exist
+        # if (Test-PodeAuth -Name $Name) {
+        #     throw "Windows AD Authentication method already defined: $($Name)"
+        # }
+
+        # # ensure the Scheme contains a scriptblock
+        # if (Test-PodeIsEmpty $Scheme.ScriptBlock) {
+        #     throw "The supplied Scheme for the '$($Name)' Windows AD authentication validator requires a valid ScriptBlock"
+        # }
+
+        # # if we're using sessions, ensure sessions have been setup
+        # if (!$Sessionless -and !(Test-PodeSessionsConfigured)) {
+        #     throw 'Sessions are required to use session persistent authentication'
+        # }
+
+        # if AD module set, ensure we're on windows and the module is available, then import/export it
+        if ($ADModule) {
+            Import-PodeAuthADModule
+        }
+        # set server name if not passed
+        if ([string]::IsNullOrWhiteSpace($Fqdn)) {
+            $Fqdn = Get-PodeAuthDomainName
+
+            if ([string]::IsNullOrWhiteSpace($Fqdn)) {
+                throw 'No domain server name has been supplied for Windows AD authentication'
+            }
+        }
+
+        # set the domain if not passed
+        if ([string]::IsNullOrWhiteSpace($Domain)) {
+            $Domain = ($Fqdn -split '\.')[0]
+        }
+
+        # if we have a scriptblock, deal with using vars
+        if ($null -ne $ScriptBlock) {
+            $ScriptBlock, $usingVars = Convert-PodeScopedVariables -ScriptBlock $ScriptBlock -PSSession $PSCmdlet.SessionState
+        }
+
+        # add Windows AD auth method to server
+        @{
+            ScriptBlock = (Get-PodeAuthWindowsADMethod)
+            Arguments   = @{
+                Server         = $Fqdn
+                Domain         = $Domain
+                SearchBase     = $SearchBase
+                Users          = $Users
+                Groups         = $Groups
+                NoGroups       = $NoGroups
+                DirectGroups   = $DirectGroups
+                KeepCredential = $KeepCredential
+                Provider       = (Get-PodeAuthADProvider -OpenLDAP:$OpenLDAP -ADModule:$ADModule)
+                ScriptBlock    = @{
+                    Script         = $ScriptBlock
+                    UsingVariables = $usingVars
+                }
+            }
+        }
+    } $PSBoundParameters
+}

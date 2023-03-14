@@ -64,7 +64,7 @@ $Config = @{
             Set-PwtRouteParams -Authentication 'MainAuth'
         }
         #>
-        <# Json file (Useful for testing):
+        <# With json file (Useful for testing):
         Login        = {
             Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
             New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath)
@@ -72,12 +72,40 @@ $Config = @{
             Set-PwtRouteParams -Authentication 'MainAuth'
         }
         #>
-        <# Login from Json file with SQLite persistent session and user configuration page:
-        # You can edit this to use AD + SQLite for example. If needed I can add an SQLite only example that stores the users in it.
-        Login        = {
-            # New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath) -ScriptBlock (New-SqlPodeAuthScriptBlock)
-            # New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT' -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
+        #<# With EF (SQLite):
+        Login            = {
+            # EF login:
             New-PodeAuthScheme -Form | Add-PodeAuthEf -Name 'MainAuth'
+
+            # # Json file login + EF user settings:
+            # New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath) -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
+
+            # # AD login + EF user settings:
+            # New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT' -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
+
+            <# AD login + EF login example:
+            New-PodeAuthScheme -Form | Add-PodeAuth -Name 'MainAuth'-ArgumentList @{
+                PodeAuthWindowsAd = Get-PodeAuthWindowsAd -Groups 'IT' -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
+                PodeAuthEf        = Get-PodeAuthEf
+            } -ScriptBlock {
+                param(
+                    [string]$Username,
+                    [string]$Password,
+                    [hashtable]$PodeAuths
+                )
+                $ResultsEf = Invoke-PodeScriptBlock -ScriptBlock $PodeAuths.PodeAuthEf.ScriptBlock `
+                    -Arguments $Username, $Password, $PodeAuths.PodeAuthEf.Arguments -Splat -Return
+                if ($ResultsEf.User) {
+                    $ResultsEf
+                }
+                else {
+                    $ResultsWindowsAD = Invoke-PodeScriptBlock -ScriptBlock $PodeAuths.PodeAuthWindowsAd.ScriptBlock `
+                        -Arguments $Username, $Password, $PodeAuths.PodeAuthWindowsAd.Arguments -Splat -Return
+                    $ResultsWindowsAD
+                }
+            }
+            #>
+
 
             Set-PodeWebLoginPage -Authentication 'MainAuth'
             Set-PwtRouteParams -Authentication 'MainAuth'

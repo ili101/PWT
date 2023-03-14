@@ -76,6 +76,8 @@
         'Connect-PwtEfSql',
         # 'New-SqlPodeStoreObject',
         'New-PwtEfPodeAuthScriptBlock',
+        'Get-PodeAuthEfMethod',
+        'Get-PodeAuthEf',
         'Add-PodeAuthEf',
         'Test-HashPassword',
         'Get-PwtEf_Snippet',
