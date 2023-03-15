@@ -42,13 +42,19 @@ function Initialize-PwtCore {
     param ()
     {
         $ConfigPwtCore = Get-PwtConfig -Module 'Pwt.Component.Core'
-        'StoragePath', 'DownloadPath' | ForEach-Object { $ConfigPwtCore[$_] = $ConfigPwtCore[$_] | Get-PwtRootedPath }
+        'StoragePath', 'DownloadPath' | ForEach-Object {
+            $ConfigPwtCore[$_] = $ConfigPwtCore[$_] | Get-PwtRootedPath
+            if (!(Test-Path $ConfigPwtCore[$_])) {
+                New-Item -ItemType Directory -Path $ConfigPwtCore[$_] | Out-Null
+            }
+        }
         if (!$ConfigPwtCore.ContainsKey('RouteParams')) {
             $ConfigPwtCore['RouteParams'] = @{}
         }
         if (!$ConfigPwtCore.ContainsKey('AttachmentParams')) {
             $ConfigPwtCore['AttachmentParams'] = @{}
         }
+
     }
 }
 function Get-PwtPagesCore {
