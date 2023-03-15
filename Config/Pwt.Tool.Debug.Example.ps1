@@ -1,0 +1,4 @@
+@{
+    AccessGroups = @('Admins')
+    Group = 'Admin'
+}

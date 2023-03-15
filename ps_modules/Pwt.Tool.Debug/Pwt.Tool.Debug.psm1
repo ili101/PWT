@@ -2,7 +2,15 @@ function Get-PwtPagesDebug {
     [CmdletBinding()]
     param ()
     {
-        Add-PodeWebPage -Name Debug -Icon bug-outline -ScriptBlock {
+        $Config = Get-PwtConfig -Module 'Pwt.Tool.Debug'
+        $WebPageParams = @{}
+        if ($null -ne $Config['AccessGroups']) {
+            $WebPageParams.AccessGroups = $Config['AccessGroups']
+        }
+        if ($null -ne $Config['Group']) {
+            $WebPageParams.Group = $Config['Group']
+        }
+        Add-PodeWebPage @WebPageParams -Name Debug -Icon bug-outline -ScriptBlock {
             New-PodeWebAccordion -Mode Collapsed -Bellows @(
                 New-PodeWebBellow -Name Config -Content @(
                     $Config = Get-PodeConfig
