@@ -281,7 +281,6 @@ function Get-PwtPagesEf {
                         Get-PwtEf_Snippet -Table 'User' -Action 'Get' -Variant 'Existing' -Username $Username
                     ) -ScriptBlock {
                         Get-PwtEf_Snippet -Table 'User' -Action 'Set' -Variant 'Existing'
-                        Write-Host ($Request | Out-String)
                         # WORKAROUND: Move-PodeWebUrl not accepting `Move-PodeWebUrl -Url ''`.
                         Move-PodeWebUrl -Url '?'
                         # TODO: Reset user session.
