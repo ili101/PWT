@@ -1,9 +1,10 @@
 function Invoke-PwtConfig {
     [CmdletBinding()]
     param (
+        [string]$Module,
         [switch]$PassThru,
-        [string]$ScriptRoot = (Get-PodeServerPath),
-        [string]$Module
+        [switch]$Save,
+        [string]$ScriptRoot = (Get-PodeServerPath)
     )
     # Load Config.
     $ConfigDynamicPath = @("$Module.ps1")
@@ -12,13 +13,20 @@ function Invoke-PwtConfig {
     }
     $ConfigDynamicPath = $ConfigDynamicPath | ForEach-Object { Join-Path $ScriptRoot 'Config' $_ } | Where-Object { $_ | Test-Path } | Select-Object -First 1
     if ($ConfigDynamicPath) {
-        $script:ConfigDynamic = & $ConfigDynamicPath
-        if ($PassThru) {
-            return $script:ConfigDynamic
-        }
+        $Config = & $ConfigDynamicPath
     }
     else {
-        @{}
+        $Config = @{}
+    }
+    if ($Save) {
+        $ConfigPode = Get-PodeConfig
+        if (!$ConfigPode.ContainsKey('Configs')) {
+            $ConfigPode['Configs'] = @{}
+        }
+        $ConfigPode['Configs'][$Module] = $Config
+    }
+    if ($PassThru) {
+        return $Config
     }
 }
 function Get-PwtConfig {
@@ -28,6 +36,35 @@ function Get-PwtConfig {
     )
     $Config = Get-PodeConfig
     return $Config['Configs'][$Module]
+}
+function Initialize-PwtCore {
+    [CmdletBinding()]
+    param ()
+    {
+        $ConfigPwtCore = Get-PwtConfig -Module 'Pwt.Component.Core'
+        'StoragePath', 'DownloadPath' | ForEach-Object { $ConfigPwtCore[$_] = $ConfigPwtCore[$_] | Get-PwtRootedPath }
+        if (!$ConfigPwtCore.ContainsKey('RouteParams')) {
+            $ConfigPwtCore['RouteParams'] = @{}
+        }
+        if (!$ConfigPwtCore.ContainsKey('AttachmentParams')) {
+            $ConfigPwtCore['AttachmentParams'] = @{}
+        }
+    }
+}
+function Get-PwtPagesCore {
+    [CmdletBinding()]
+    param ()
+    {
+        $Config = Get-PwtConfig -Module 'Pwt.Component.Core'
+        $RouteParams = $Config['RouteParams']
+
+        # Set Download Route.
+        $DownloadPath = $Config['DownloadPath']
+        if (!(Test-Path -Path $DownloadPath)) {
+            $null = New-Item -ItemType Directory $DownloadPath
+        }
+        Add-PodeStaticRoute -Path '/download' -Source $DownloadPath -DownloadOnly @RouteParams
+    }
 }
 
 function Get-PwtRootedPath {
@@ -70,13 +107,7 @@ function Set-PwtRouteParams {
         [String]$EndpointName,
         [String]$Authentication
     )
-    $Config = Get-PwtConfig -Module 'Pwt'
-    if (!$Config.ContainsKey('RouteParams')) {
-        $Config['RouteParams'] = @{}
-    }
-    if (!$Config.ContainsKey('AttachmentParams')) {
-        $Config['AttachmentParams'] = @{}
-    }
+    $Config = Get-PwtConfig -Module 'Pwt.Component.Core'
     if ($EndpointName) {
         $Config['AttachmentParams']['EndpointName'] = $Config['RouteParams']['EndpointName'] = $EndpointName
     }
@@ -318,4 +349,54 @@ function Get-PodeAuthWindowsAd {
             }
         }
     } $PSBoundParameters
+}
+function Join-Array {
+    <#
+    .SYNOPSIS
+        Joins an array of arrays.
+    .DESCRIPTION
+        Filters out nulls on the first level unless -IncludeNull is specified.
+        Dose not join nested arrays.
+        Using `-InputObject` should behave the same as if pipeline was used https://github.com/PowerShell/PowerShell/issues/4242.
+    .OUTPUTS
+        If multiple items to be returned, output will be an array.
+        If one item to be returned, output will be the object itself.
+        If nothing to be returned, noting will be returned (Powershell will return `[System.Management.Automation.Internal.AutomationNull]::Value`),
+        which is the same as `$null` but will not be pipelined (see null example).
+    .EXAMPLE
+        $Foo = $null
+        $Bar = 'zzz'
+        $Baz = @(1, 2, $null)
+        $Foo, $Bar, $Baz | Join-Array | ConvertTo-Json -Compress
+        # Output: ["zzz",1,2,null]
+    .EXAMPLE
+        $null | Join-Array | ForEach-Object { ConvertTo-Json $_ -Compress }
+        # No output, because the pipeline is empty.
+
+        # Without `Join-Array`:
+        $null | ForEach-Object { ConvertTo-Json $_ -Compress }
+        # Output: null
+    #>
+    [CmdletBinding()]
+    param (
+        # The arrays to join.
+        [Parameter(ValueFromPipeline)]
+        $InputObject,
+        # Do not filter out nulls on the first level.
+        [switch]$IncludeNull
+    )
+    process {
+        if ($MyInvocation.ExpectingInput) {
+            if ($IncludeNull -or $null -ne $InputObject) {
+                $InputObject
+            }
+        }
+        else {
+            foreach ( $SubObject in @($InputObject) ) {
+                if ($IncludeNull -or $null -ne $SubObject) {
+                    $SubObject
+                }
+            }
+        }
+    }
 }

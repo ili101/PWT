@@ -2,7 +2,7 @@ function Start-Pwt {
     param (
         [string]$ScriptRoot
     )
-    $script:ConfigDynamic = Invoke-PwtConfig -Module 'Pwt' -PassThru -ScriptRoot $ScriptRoot
+    $ConfigPwt = Invoke-PwtConfig -Module 'Pwt' -PassThru -ScriptRoot $ScriptRoot
     # $script:PwtCorePath = (Join-Path $PSScriptRoot 'Pwt.Component.Core')
 
     # $PackagePath = Join-Path $ScriptRoot '\Components\Core\package.json'
@@ -22,24 +22,24 @@ function Start-Pwt {
     # }
 
     # Import Modules.
-    $ImportParams = if ($ConfigDynamic['Debug']) {
+    $ImportParams = if ($ConfigPwt['Debug']) {
         @{ Force = $true }
     }
     else {
         @{}
     }
-    # $ModulesPaths = @(Join-Path $ScriptRoot '\Components\Core\Pwt.Core.Helper.psm1') + $ConfigDynamic['ModulesPaths']
-    $ModulesPaths = $ConfigDynamic['ModulesPaths']
+    # $ModulesPaths = @(Join-Path $ScriptRoot '\Components\Core\Pwt.Core.Helper.psm1') + $ConfigPwt['ModulesPaths']
+    $ModulesPaths = $ConfigPwt['ModulesPaths']
     Import-Module -Name $ModulesPaths @ImportParams -Global
 
     # Get `Start-PodeServer` params.
-    $PodeServerParams = if ($ConfigDynamic.PodeServerParams) {
-        $ConfigDynamic.PodeServerParams
+    $PodeServerParams = if ($ConfigPwt.PodeServerParams) {
+        $ConfigPwt.PodeServerParams
     }
     else {
         @{}
     }
-    if ($ConfigDynamic.PodeServerParams.ListenerType -eq 'Kestrel') {
+    if ($ConfigPwt.PodeServerParams.ListenerType -eq 'Kestrel') {
         Import-Module -Name Pode.Kestrel
     }
 

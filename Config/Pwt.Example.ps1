@@ -112,10 +112,6 @@ $Config = @{
 
     # Force modules reload abd show errors on web.
     Debug            = $true
-    # Main storage path.
-    StoragePath      = '.\Storage\'
-    # Path to temporary downland cache.
-    DownloadPath     = '.\Storage\Download'
     Tools            = @(
         'Debug'
         # @{ Name = "MyModule"; Path = '' }
