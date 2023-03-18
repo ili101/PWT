@@ -64,8 +64,7 @@ $Config = @{
         #>
     <# With json file (Useful for testing):
         Login        = {
-            Enable-PodeSessionMiddleware -Secret 'Cookies jar lid' -Duration (10 * 60) -Extend
-            New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath)
+            New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath (Get-PwtJsonFilePath)
             Set-PodeWebLoginPage -Authentication 'MainAuth'
             Set-PwtRouteParams -Authentication 'MainAuth'
         }
@@ -76,14 +75,15 @@ $Config = @{
         New-PodeAuthScheme -Form | Add-PodeAuthEf -Name 'MainAuth'
 
         # # Json file login + EF user settings:
-        # New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath ('\Components\Json\Example.json' | Get-PwtRootedPath) -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
+        # New-PodeAuthScheme -Form | Add-PodeAuthUserFile -Name 'MainAuth' -FilePath (Get-PwtJsonFilePath) -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
 
         # # AD login + EF user settings:
         # New-PodeAuthScheme -Form | Add-PodeAuthWindowsAd -Name 'MainAuth' -Groups 'IT' -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
 
         <# AD login + EF login example:
         New-PodeAuthScheme -Form | Add-PodeAuth -Name 'MainAuth'-ArgumentList @{
-            PodeAuthWindowsAd = Get-PodeAuthWindowsAd -Groups 'IT' -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
+            # PodeAuthWindowsAd = Get-PodeAuthWindowsAd -Groups 'IT' -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
+            PodeAuthUserFile  = Get-PodeAuthUserFile  -FilePath (Get-PwtJsonFilePath) -ScriptBlock (New-PwtEfPodeAuthScriptBlock)
             PodeAuthEf        = Get-PodeAuthEf
         } -ScriptBlock {
             param(
@@ -97,9 +97,12 @@ $Config = @{
                 $ResultsEf
             }
             else {
-                $ResultsWindowsAD = Invoke-PodeScriptBlock -ScriptBlock $PodeAuths.PodeAuthWindowsAd.ScriptBlock `
-                    -Arguments $Username, $Password, $PodeAuths.PodeAuthWindowsAd.Arguments -Splat -Return
-                $ResultsWindowsAD
+                # $ResultsWindowsAD = Invoke-PodeScriptBlock -ScriptBlock $PodeAuths.PodeAuthWindowsAd.ScriptBlock `
+                #     -Arguments $Username, $Password, $PodeAuths.PodeAuthWindowsAd.Arguments -Splat -Return
+                # $ResultsWindowsAD
+                $ResultsUserFile = Invoke-PodeScriptBlock -ScriptBlock $PodeAuths.PodeAuthUserFile.ScriptBlock `
+                    -Arguments $Username, $Password, $PodeAuths.PodeAuthUserFile.Arguments -Splat -Return
+                $ResultsUserFile
             }
         }
         #>
@@ -120,6 +123,7 @@ $Config = @{
         # 'Json'
         'Sqlite'
         'Ef'
+        'Json'
     )
 }
 $Config

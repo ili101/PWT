@@ -145,7 +145,7 @@ function Get-PwtEf_Snippet {
                         . Connect-PwtEfSql -ScriptBlock {
                             $ObjectsList = Search-EFPosh -Entity $SubType.Name
                         }
-                        $KeyName = $ObjectsList[0].PsObject.Properties | Select-Object -First 1 -ExpandProperty Name
+                        $KeyName = ${ObjectsList}?[0].PsObject.Properties | Select-Object -First 1 -ExpandProperty Name
                         New-PodeWebSelect -Name $Column.Name -Options ($ObjectsList.$KeyName) -Multiple -SelectedValue $Column.Value.$KeyName
                     }
                 }
@@ -495,7 +495,9 @@ function New-PwtEfPodeAuthScriptBlock {
     param ()
     {
         param($UserPode)
-
+        if (!$UserPode.AuthenticationType -and $UserPode.Metadata.AuthenticationType) {
+            $UserPode.AuthenticationType = $UserPode.Metadata.AuthenticationType
+        }
         . Connect-PwtEfSql -ScriptBlock {
             $UserEf = Search-EFPosh -Entity User -Expression { $_.Username -eq $UserPode.Username } -Include 'Groups'
         }

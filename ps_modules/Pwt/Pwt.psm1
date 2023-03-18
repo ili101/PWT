@@ -1,3 +1,4 @@
+$ErrorActionPreference = 'Stop'
 function Start-Pwt {
     param (
         [string]$ScriptRoot
@@ -30,7 +31,9 @@ function Start-Pwt {
     }
     # $ModulesPaths = @(Join-Path $ScriptRoot '\Components\Core\Pwt.Core.Helper.psm1') + $ConfigPwt['ModulesPaths']
     $ModulesPaths = $ConfigPwt['ModulesPaths']
-    Import-Module -Name $ModulesPaths @ImportParams -Global
+    if ($ModulesPaths) {
+        Import-Module -Name $ModulesPaths @ImportParams -Global
+    }
 
     # Get `Start-PodeServer` params.
     $PodeServerParams = if ($ConfigPwt.PodeServerParams) {

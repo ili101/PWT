@@ -1,3 +1,4 @@
+$ErrorActionPreference = 'Stop'
 function Invoke-PwtConfig {
     [CmdletBinding()]
     param (
@@ -356,6 +357,109 @@ function Get-PodeAuthWindowsAd {
         }
     } $PSBoundParameters
 }
+function Get-PodeAuthUserFile {
+    [CmdletBinding()]
+    param(
+        # [Parameter(Mandatory = $true)]
+        # [string]
+        # $Name,
+
+        # [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        # [hashtable]
+        # $Scheme,
+
+        [Parameter()]
+        [string]
+        $FilePath,
+
+        [Parameter()]
+        [string[]]
+        $Groups,
+
+        [Parameter()]
+        [string[]]
+        $Users,
+
+        [Parameter(ParameterSetName = 'Hmac')]
+        [string]
+        $HmacSecret,
+
+        # [Parameter()]
+        # [string]
+        # $FailureUrl,
+
+        # [Parameter()]
+        # [string]
+        # $FailureMessage,
+
+        # [Parameter()]
+        # [string]
+        # $SuccessUrl,
+
+        [Parameter()]
+        [scriptblock]
+        $ScriptBlock
+
+        # [switch]
+        # $Sessionless,
+
+        # [switch]
+        # $SuccessUseOrigin
+    )
+    . (Get-Module Pode) {
+        $args[0].GetEnumerator() | ForEach-Object {
+            Set-Variable -Name $_.Key -Value $_.Value
+        }
+        # # ensure the name doesn't already exist
+        # if (Test-PodeAuth -Name $Name) {
+        #     throw "User File Authentication method already defined: $($Name)"
+        # }
+
+        # # ensure the Scheme contains a scriptblock
+        # if (Test-PodeIsEmpty $Scheme.ScriptBlock) {
+        #     throw "The supplied Scheme for the '$($Name)' User File authentication validator requires a valid ScriptBlock"
+        # }
+
+        # # if we're using sessions, ensure sessions have been setup
+        # if (!$Sessionless -and !(Test-PodeSessionsConfigured)) {
+        #     throw 'Sessions are required to use session persistent authentication'
+        # }
+
+        # set the file path if not passed
+        if ([string]::IsNullOrWhiteSpace($FilePath)) {
+            $FilePath = Join-PodeServerRoot -Folder '.' -FilePath 'users.json'
+        }
+        else {
+            $FilePath = Get-PodeRelativePath -Path $FilePath -JoinRoot -Resolve
+        }
+
+        # ensure the user file exists
+        if (!(Test-PodePath -Path $FilePath -NoStatus -FailOnDirectory)) {
+            throw "The user file does not exist: $($FilePath)"
+        }
+
+        # if we have a scriptblock, deal with using vars
+        if ($null -ne $ScriptBlock) {
+            $ScriptBlock, $usingVars = Convert-PodeScopedVariables -ScriptBlock $ScriptBlock -PSSession $PSCmdlet.SessionState
+        }
+
+        # add Windows AD auth method to server
+        @{
+            ScriptBlock = (Get-PodeAuthUserFileMethod)
+            Arguments   = @{
+                FilePath    = $FilePath
+                Users       = $Users
+                Groups      = $Groups
+                HmacSecret  = $HmacSecret
+                ScriptBlock = @{
+                    Script         = $ScriptBlock
+                    UsingVariables = $usingVars
+                }
+            }
+        }
+    } $PSBoundParameters
+}
+
 function Join-Array {
     <#
     .SYNOPSIS

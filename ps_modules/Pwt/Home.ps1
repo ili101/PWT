@@ -6,7 +6,7 @@
 
     # Set Config.
     $ConfigPwt = Invoke-PwtConfig -Module 'Pwt' -PassThru -Save
-    'Tools', 'Components' | Where-Object { $null -eq $ConfigPwt[$_] } | ForEach-Object { $ConfigPwt[$_] = @{} }
+    'Tools', 'Components' | Where-Object { $null -eq $ConfigPwt[$_] } | ForEach-Object { $ConfigPwt[$_] = @() }
     $ImportParams = $ConfigPwt['ImportParams'] = if ($ConfigPwt['Debug']) {
         @{ Force = $true }
     }
@@ -72,6 +72,8 @@
 
     # Load Tools and Components.
     foreach ($Module in 'Core', $ConfigPwt.Components, $ConfigPwt.Tools | Join-Array) {
-        . (. "Get-PwtPages$Module")
+        if (Get-Command "Get-PwtPages$Module" -ErrorAction SilentlyContinue) {
+            . (. "Get-PwtPages$Module")
+        }
     }
 }
